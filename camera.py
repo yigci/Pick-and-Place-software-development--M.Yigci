@@ -2,33 +2,35 @@
 import numpy as np
 import imutils
 import cv2
-# import urllib.request
+import urllib.request
+import time
+
 # import sys
 # import pickle
 
 
 def visual():
 
-    cap = cv2.VideoCapture(0)
-#   address = "http://192.168.1.23:4747/video?1280x720/"
-#   address = "http://192.168.1.23:4747/cam/1/led_toggle"
-#   urllib.request.urlopen(address)
+    address = "http://192.168.1.23:4747/video?1280x720/"
+    cap = cv2.VideoCapture(address)
+    address = "http://192.168.1.23:4747/cam/1/led_toggle"
+    urllib.request.urlopen(address)
+    time.sleep(2)
     while 1:
         ret, image = cap.read()
         cv2.waitKey(1)
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        gray = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 21, 16)
+        gray = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 16)
         edged = cv2.Canny(gray, 50, 100)
-        # cv2.imshow("edged", edged)
         cv2.namedWindow("Output")
-        # find contours in the image and initialize the mask that will be
-        # used to remove the bad contours
-        cnts = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        kernel = np.ones((9, 9), np.uint8)
+        closed = cv2.morphologyEx(edged, cv2.MORPH_CLOSE, kernel)
+        cnts = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         cnts = imutils.grab_contours(cnts)
 #       cv2.drawContours(image, cnts, -1, (0, 255, 0), 1)
         cv2.waitKey(5)
         for cnt in cnts:
-            if 2000 < cv2.contourArea(cnt) < 60000:
+            if 2000 < cv2.contourArea(cnt) < 200000:
                 rect = cv2.minAreaRect(cnt)
 #               box = cv2.boxPoints(rect)
 #               box = np.int0(box)
@@ -47,7 +49,7 @@ def visual():
 #               cv2.waitKey(50)
                 cv2.imshow("Output", image)
                 open('center_info.txt', 'w').close()
-                myfile = open('center_info.txt','a')
+                myfile = open('center_info.txt', 'a')
                 data = []
 
                 data.append((coor[0]))
@@ -56,7 +58,5 @@ def visual():
 #               if write_to_file is 1:
                 myfile.write(str(data))
 #               write_to_file = 0
+                return data
         cv2.imshow("Output", image)
-
-
-visual()

@@ -1,50 +1,59 @@
 import pandas as pd
 import numpy as np
+import camera
+import serial_grbl
+import time
 
 CAMERA_POSITION = [100, 200]
 FEEDER_POSITION = [100, 100]
-
-
 def create_gcode(feeder, indx, angle, x_coordinates, y_coordinates):
+################################################
+    position_x = 0
+    position_y = 0
+    data = None
+    while data is None:
+        data = camera.visual()
+    center_x = data[0]
+    center_y = data[1]
+    current_angle = data[2]
+    check = 0
+    check = serial_grbl.send_gcode('feeder_loc.txt')
 
-    reading = open("center_info.txt", "r+")
-    #   (Acquire information from camera. Coordinates should be written into this file by camera script)
-    data_file = reading.read()
-    print(data_file)
-    data_file = data_file.replace('[', '')
-    data_file = data_file.replace(']', '')
-    temp = data_file.split(",")
-    input_data = []
+    if check is 0:
+        print("An error occured in GCode sending script.")
 
-    for i in range(len(temp)):
-        input_data.append(int(float(temp[i])))
-    center_x = input_data[0]
-    center_y = input_data[1]
-    current_angle = input_data[2]
-    print(center_x, center_y, current_angle)
-########################################################################################################################
+    position_x = FEEDER_POSITION[0]
+    position_y = FEEDER_POSITION[1]
 
     for i in range(len(feeder)):
         locations = indx[i]
-#       =======> go to feeder location. If many, make gcode creation properly.
-        # test #
-        with open('feeder_loc.txt', "r") as f:
-            f.read()
-        myfile = open('feeder_loc.txt', "w")
-        myfile.write("G17 G21 G90 G94\nG00 X%s Y%s" % (str(FEEDER_POSITION[0]), str(FEEDER_POSITION[1])))
-        # Send created Gcode via Serial connection
-        # test #
         print("Picking: %s" % feeder[i])
+        with open('gcode.txt', "r") as f:
+            f.read()
+        myfile = open('gcode.txt', "w")
+        myfile.write("G17 G21 G90 \nG00 Z10 M08 \nG00 Z0.\n")
+        myfile.close()
+        serial_grbl.send_gcode('gcode.txt')  # pick up the component.
 #       =======> Gcode for picking up the element.
 #       =======> Go to camera position and make necessary corrections.(add each correction move. Total value will be
 #       added to placement location.)
         for k in range(len(locations)):
             with open('gcode.txt', "r") as f:
                 f.read()
+
             myfile = open('gcode.txt', "w")
-            myfile.write("G17 G21 G90 G94\nG01 X%s Y%s" % (str(int(float(x_coordinates[locations[k]]))),
-                                                           str(int(float(y_coordinates[locations[k]])))))
+            position_x = (float(x_coordinates[locations[k]]) / 100) - position_x
+            position_y = (float(y_coordinates[locations[k]]) / 100) - position_y
+            myfile.write("G00 X%s Y%s \n" % (str(position_x),str(position_y)))
             myfile.close()
+            serial_grbl.send_gcode('gcode.txt')
+            with open('gcode.txt', "r") as f:
+                f.read()
+            time.sleep(1)
+            myfile = open('gcode.txt', "w")
+            myfile.write("G00 Z10 M08 \nG00 Z0.\n")
+            myfile.close()
+            serial_grbl.send_gcode('gcode.txt')
 #           ======> Go to placement location.
 #           ======> Place the component.
 
@@ -92,13 +101,13 @@ def read_gerber():
             if components[r] == type_names[t]:
                 indx.append(r+1)
         indx_list.append(indx)
-    for i in range(len(type_names)):
-        locations = indx_list[i]
-        print("Picking: %s" % type_names[i])
-        for k in range(len(locations)):
-            print("Coordinates: %4d-%4d \t Angle: %3d" % (int(float(x_coordinates[locations[k]])),
-                                                          int(float(y_coordinates[locations[k]])),
-                                                          int(float(angles[locations[k]]))))
+   # for i in range(len(type_names)):
+    #    locations = indx_list[i]
+        # print("Picking: %s" % type_names[i])
+    #    for k in range(len(locations)):
+          #  print("Coordinates: %4d-%4d \t Angle: %3d" % (int(float(x_coordinates[locations[k]])),
+                                #                          int(float(y_coordinates[locations[k]])),
+#                                                          int(float(angles[locations[k]]))))
 
     create_gcode(type_names, indx_list, angles, x_coordinates, y_coordinates)
     return type_names, indx_list, angles, x_coordinates, y_coordinates

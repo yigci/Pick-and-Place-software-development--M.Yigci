@@ -1,9 +1,11 @@
 import cv2
 import numpy as np
-
+import urllib.request
 
 address = "http://192.168.1.23:4747/video?1280x720/"
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(address)
+address = "http://192.168.1.23:4747/cam/1/led_toggle"
+urllib.request.urlopen(address)
 while 1:
     ret, image = cap.read()
     cv2.waitKey(10)
