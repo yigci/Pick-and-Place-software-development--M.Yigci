@@ -6,56 +6,74 @@ import time
 
 CAMERA_POSITION = [100, 200]
 FEEDER_POSITION = [100, 100]
-def create_gcode(feeder, indx, angle, x_coordinates, y_coordinates):
-################################################
-    position_x = 0
-    position_y = 0
-    data = None
-    while data is None:
-        data = camera.visual()
-    center_x = data[0]
-    center_y = data[1]
-    current_angle = data[2]
-    check = 0
-    check = serial_grbl.send_gcode('feeder_loc.txt')
+DEFINED_CENTER = [360, 360]
 
-    if check is 0:
-        print("An error occured in GCode sending script.")
 
-    position_x = FEEDER_POSITION[0]
-    position_y = FEEDER_POSITION[1]
+def gcode_generate(x, y, angle, statement):
+
+    with open('gcode.txt', "r") as f:
+        f.read()
+    myfile = open('gcode.txt', "w")
+
+    if statement == 0:  # Move to feeder position
+        myfile.write("G01 X%s Y%s F1000\n" % (str(FEEDER_POSITION[0]), str(FEEDER_POSITION[1])))
+        myfile.close()
+        serial_grbl.send_gcode('gcode.txt')
+
+    elif statement == 1:    # pick or place sequence
+        myfile.write("G17 G21 G90 \nG00 Z10 \nM08 \nG00 Z20.\n")
+        myfile.close()
+        serial_grbl.send_gcode('gcode.txt')
+
+    elif statement == 2:    # move to camera position
+        myfile.write("G01 X%s Y%s F1000\n" % (str(CAMERA_POSITION[0]), str(CAMERA_POSITION[1])))
+        myfile.close()
+        serial_grbl.send_gcode('gcode.txt')
+
+    elif statement == 3:    # Camera position adjustments
+        myfile.write("G00 X%s Y%s \n" % (str(x), str(y)))  # incremental mode should be used.
+        myfile.close()
+        serial_grbl.send_gcode('gcode.txt')
+
+    elif statement == 4:    # Camera position adjustments
+        myfile.write("G01 X%s Y%s F1000\n" % (str(x), str(y)))  # absolute movement to placement location
+        myfile.close()
+        serial_grbl.send_gcode('gcode.txt')
+
+
+def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
 
     for i in range(len(feeder)):
         locations = indx[i]
         print("Picking: %s" % feeder[i])
-        with open('gcode.txt', "r") as f:
-            f.read()
-        myfile = open('gcode.txt', "w")
-        myfile.write("G17 G21 G90 \nG00 Z10 M08 \nG00 Z0.\n")
-        myfile.close()
-        serial_grbl.send_gcode('gcode.txt')  # pick up the component.
-#       =======> Gcode for picking up the element.
-#       =======> Go to camera position and make necessary corrections.(add each correction move. Total value will be
-#       added to placement location.)
         for k in range(len(locations)):
-            with open('gcode.txt', "r") as f:
-                f.read()
+            center_x, center_y, change_x, change_y = 0, 0, 0, 0
+            position_x = (float(x_coordinates[locations[k]]) / 100)
+            position_y = (float(y_coordinates[locations[k]]) / 100)
+            gcode_generate(0, 0, 0, 0)
+            time.sleep(10)
+            gcode_generate(0, 0, 0, 1)  # PICKUP THE COMPONENT
+            time.sleep(10)
+            gcode_generate(0, 0, 0, 2)  # GO TO CAMERA POSITION
+            time.sleep(10)
+            while ((60 < center_x < 7000) and (35 < center_y < 4500)) is False:
+                data = None
+                while data is None:
+                    data = camera.visual()
+                center_x = data[0]
+                center_y = data[1]
+                current_angle = data[2]
+                print(center_x, center_y)
+                gcode_generate((DEFINED_CENTER[0]-center_x), (DEFINED_CENTER[1]-center_y), 0, 3)
+                time.sleep(10)
+                change_x += (DEFINED_CENTER[0]-float(center_x))
+                change_y += (DEFINED_CENTER[1]-float(center_y))
 
-            myfile = open('gcode.txt', "w")
-            position_x = (float(x_coordinates[locations[k]]) / 100) - position_x
-            position_y = (float(y_coordinates[locations[k]]) / 100) - position_y
-            myfile.write("G00 X%s Y%s \n" % (str(position_x),str(position_y)))
-            myfile.close()
-            serial_grbl.send_gcode('gcode.txt')
-            with open('gcode.txt', "r") as f:
-                f.read()
-            time.sleep(1)
-            myfile = open('gcode.txt', "w")
-            myfile.write("G00 Z10 M08 \nG00 Z0.\n")
-            myfile.close()
-            serial_grbl.send_gcode('gcode.txt')
-#           ======> Go to placement location.
-#           ======> Place the component.
+            gcode_generate(position_x, position_y, 0, 4)
+            time.sleep(10)
+            gcode_generate(0, 0, 0, 1)
+            time.sleep(10)
+
 
 
 def read_gerber():
@@ -101,15 +119,15 @@ def read_gerber():
             if components[r] == type_names[t]:
                 indx.append(r+1)
         indx_list.append(indx)
-   # for i in range(len(type_names)):
-    #    locations = indx_list[i]
-        # print("Picking: %s" % type_names[i])
-    #    for k in range(len(locations)):
-          #  print("Coordinates: %4d-%4d \t Angle: %3d" % (int(float(x_coordinates[locations[k]])),
-                                #                          int(float(y_coordinates[locations[k]])),
-#                                                          int(float(angles[locations[k]]))))
+#   for i in range(len(type_names)):
+#      locations = indx_list[i]
+#      print("Picking: %s" % type_names[i])
+#     for k in range(len(locations)):
+#     print("Coordinates: %4d-%4d \t Angle: %3d" % (int(float(x_coordinates[locations[k]])),
+#                                                   int(float(y_coordinates[locations[k]])),
+#                                                   int(float(angles[locations[k]]))))
 
-    create_gcode(type_names, indx_list, angles, x_coordinates, y_coordinates)
+    component_handle(type_names, indx_list, angles, x_coordinates, y_coordinates)
     return type_names, indx_list, angles, x_coordinates, y_coordinates
 
 

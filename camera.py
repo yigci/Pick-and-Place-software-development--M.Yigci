@@ -5,9 +5,6 @@ import cv2
 import urllib.request
 import time
 
-# import sys
-# import pickle
-
 
 def visual():
 
@@ -29,13 +26,22 @@ def visual():
         cnts = imutils.grab_contours(cnts)
 #       cv2.drawContours(image, cnts, -1, (0, 255, 0), 1)
         cv2.waitKey(5)
+        mycnts = []
+
         for cnt in cnts:
-            if 2000 < cv2.contourArea(cnt) < 200000:
+            if 7000 < cv2.contourArea(cnt) < 20000:
+                perimeter = cv2.arcLength(cnt, True)
+                approx = cv2.approxPolyDP(cnt, 0.1 * perimeter, True)
+                if len(approx) == 4:
+                    mycnts.append(cnt)
+#        cv2.drawContours(image, mycnts, -1, (0, 255, 0), 1)
+
+        for cnt in mycnts:
+            if 6500 < cv2.contourArea(cnt) < 21000:
                 rect = cv2.minAreaRect(cnt)
 #               box = cv2.boxPoints(rect)
 #               box = np.int0(box)
 #               cv2.drawContours(image, [box], 0, (0, 0, 255), 2)
-#               cv2.waitKey(5)
                 rect = list(rect)
                 angle = list(np.float_(rect[2:3]))
                 angle = float(angle[0])
@@ -46,17 +52,13 @@ def visual():
                 cv2.circle(image, (cx, cy), 1, (255, 255, 255), -1)
                 cv2.putText(image, "center: %f-%f  Angle: %f" % (coor[0], coor[1], angle), (15, 15),
                             cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255), 1)
-#               cv2.waitKey(50)
                 cv2.imshow("Output", image)
                 open('center_info.txt', 'w').close()
                 myfile = open('center_info.txt', 'a')
                 data = []
-
                 data.append((coor[0]))
                 data.append((coor[1]))
                 data.append(angle)
-#               if write_to_file is 1:
                 myfile.write(str(data))
-#               write_to_file = 0
                 return data
         cv2.imshow("Output", image)
