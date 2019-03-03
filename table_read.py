@@ -3,6 +3,7 @@ import numpy as np
 import camera
 import serial_grbl
 import time
+from serial_grbl import send_gcode, act_serial
 
 CAMERA_POSITION = [100, 200]
 FEEDER_POSITION = [100, 100]
@@ -16,9 +17,9 @@ def gcode_generate(x, y, angle, statement):
     myfile = open('gcode.txt', "w")
 
     if statement == 0:  # Move to feeder position
-        myfile.write("G01 X%s Y%s F1000\n" % (str(FEEDER_POSITION[0]), str(FEEDER_POSITION[1])))
+        myfile.write("G01 X%s Y%s F5000\n" % (str(FEEDER_POSITION[0]), str(FEEDER_POSITION[1])))
         myfile.close()
-        serial_grbl.send_gcode('gcode.txt')
+        send_gcode('gcode.txt')
 
     elif statement == 1:    # pick or place sequence
         myfile.write("G17 G21 G90 \nG00 Z10 \nM08 \nG00 Z20.\n")
@@ -26,7 +27,7 @@ def gcode_generate(x, y, angle, statement):
         serial_grbl.send_gcode('gcode.txt')
 
     elif statement == 2:    # move to camera position
-        myfile.write("G01 X%s Y%s F1000\n" % (str(CAMERA_POSITION[0]), str(CAMERA_POSITION[1])))
+        myfile.write("G01 X%s Y%s F5000\n" % (str(CAMERA_POSITION[0]), str(CAMERA_POSITION[1])))
         myfile.close()
         serial_grbl.send_gcode('gcode.txt')
 
@@ -36,7 +37,7 @@ def gcode_generate(x, y, angle, statement):
         serial_grbl.send_gcode('gcode.txt')
 
     elif statement == 4:    # Camera position adjustments
-        myfile.write("G01 X%s Y%s F1000\n" % (str(x), str(y)))  # absolute movement to placement location
+        myfile.write("G01 X%s Y%s F5000\n" % (str(x), str(y)))  # absolute movement to placement location
         myfile.close()
         serial_grbl.send_gcode('gcode.txt')
 
@@ -62,7 +63,8 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
                     data = camera.visual()
                 center_x = data[0]
                 center_y = data[1]
-                current_angle = data[2]
+                # current_angle = data[2]
+
                 print(center_x, center_y)
                 gcode_generate((DEFINED_CENTER[0]-center_x), (DEFINED_CENTER[1]-center_y), 0, 3)
                 time.sleep(10)
@@ -73,7 +75,6 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
             time.sleep(10)
             gcode_generate(0, 0, 0, 1)
             time.sleep(10)
-
 
 
 def read_gerber():
@@ -131,4 +132,5 @@ def read_gerber():
     return type_names, indx_list, angles, x_coordinates, y_coordinates
 
 
+act_serial()
 read_gerber()

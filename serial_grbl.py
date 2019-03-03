@@ -1,9 +1,16 @@
 import serial
 import time
 
+s = None
+
+
+def act_serial():
+    global s
+    s = serial.Serial('COM4', 115200)
+
 
 def send_gcode(address):
-    s = serial.Serial('COM4', 115200)
+
     f = open(address, 'r')
 
     # Wake up grbl
