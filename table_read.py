@@ -12,34 +12,34 @@ DEFINED_CENTER = [360, 360]
 
 def gcode_generate(x, y, angle, statement):
 
-    with open('gcode.txt', "r") as f:
+    with open('C:/Users/muham/Desktop/gcode.txt', "r") as f:
         f.read()
-    myfile = open('gcode.txt', "w")
+    myfile = open('C:/Users/muham/Desktop/gcode.txt', "w")
 
     if statement == 0:  # Move to feeder position
         myfile.write("G01 X%s Y%s F5000\n" % (str(FEEDER_POSITION[0]), str(FEEDER_POSITION[1])))
         myfile.close()
-        send_gcode('gcode.txt')
+        send_gcode('C:/Users/muham/Desktop/gcode.txt')
 
     elif statement == 1:    # pick or place sequence
         myfile.write("G17 G21 G90 \nG00 Z10 \nM08 \nG00 Z20.\n")
         myfile.close()
-        serial_grbl.send_gcode('gcode.txt')
+        serial_grbl.send_gcode('C:/Users/muham/Desktop/gcode.txt')
 
     elif statement == 2:    # move to camera position
         myfile.write("G01 X%s Y%s F5000\n" % (str(CAMERA_POSITION[0]), str(CAMERA_POSITION[1])))
         myfile.close()
-        serial_grbl.send_gcode('gcode.txt')
+        serial_grbl.send_gcode('C:/Users/muham/Desktop/gcode.txt')
 
     elif statement == 3:    # Camera position adjustments
         myfile.write("G00 X%s Y%s \n" % (str(x), str(y)))  # incremental mode should be used.
         myfile.close()
-        serial_grbl.send_gcode('gcode.txt')
+        serial_grbl.send_gcode('C:/Users/muham/Desktop/gcode.txt')
 
     elif statement == 4:    # Camera position adjustments
         myfile.write("G01 X%s Y%s F5000\n" % (str(x), str(y)))  # absolute movement to placement location
         myfile.close()
-        serial_grbl.send_gcode('gcode.txt')
+        serial_grbl.send_gcode('C:/Users/muham/Desktop/gcode.txt')
 
 
 def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
@@ -80,6 +80,8 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
 def read_gerber():
 
     loc = "C:/Users/muham/Desktop/XY-coordinates.htm"
+#    loc = input("Enter full path of gerber file: ")
+
     table = pd.read_html(loc)
     table = table[0]
 ##
