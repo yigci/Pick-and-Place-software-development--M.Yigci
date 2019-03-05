@@ -4,77 +4,98 @@ import camera
 import serial_grbl
 import time
 from serial_grbl import send_gcode, act_serial
+from enum import Enum
 
-CAMERA_POSITION = [100, 200]
-FEEDER_POSITION = [100, 100]
-DEFINED_CENTER = [360, 360]
+
+class State(Enum):      # To make the program easier to understand, some of the processes assigned to numbers.
+    GO_TO_FEEDER = 0
+    PICK_UP = 1
+    PLACE = 2
+    GO_TO_CAMERA = 3
+    CAMERA_ADJUST = 4
+    PLACEMENT_LOC = 5
+
+
+CAMERA_POSITION = [10, 0]   # Predefined constants.
+FEEDER_POSITION = [20, 0]
+DEFINED_CENTER = [180, 180]
 
 
 def gcode_generate(x, y, angle, statement):
 
-    with open('C:/Users/muham/Desktop/gcode.txt', "r") as f:
+    with open('gcode.txt', "r") as f:      # Code between line 26-28 is to clear the gcode.txt file.
         f.read()
-    myfile = open('C:/Users/muham/Desktop/gcode.txt', "w")
+    myfile = open('gcode.txt', "w")
 
-    if statement == 0:  # Move to feeder position
-        myfile.write("G01 X%s Y%s F5000\n" % (str(FEEDER_POSITION[0]), str(FEEDER_POSITION[1])))
-        myfile.close()
-        send_gcode('C:/Users/muham/Desktop/gcode.txt')
+    if statement == State.GO_TO_FEEDER:    # Move to feeder position
+        myfile.write("X%s Y%s \n" % (str(FEEDER_POSITION[0]), str(FEEDER_POSITION[1])))  # write new gcode to the file.
+        myfile.close()                     # close file for next step.
+        check = send_gcode('gcode.txt')            # Send gcode to the controller.
 
-    elif statement == 1:    # pick or place sequence
-        myfile.write("G17 G21 G90 \nG00 Z10 \nM08 \nG00 Z20.\n")
+    elif statement == State.PICK_UP:       # pick up
+        myfile.write("Z10 \nM08 \nZ20. \n")
         myfile.close()
-        serial_grbl.send_gcode('C:/Users/muham/Desktop/gcode.txt')
+        check = send_gcode('gcode.txt')
 
-    elif statement == 2:    # move to camera position
-        myfile.write("G01 X%s Y%s F5000\n" % (str(CAMERA_POSITION[0]), str(CAMERA_POSITION[1])))
+    elif statement == State.PLACE:         # place
+        myfile.write("Z10 \nM09 \nZ20. \n")
         myfile.close()
-        serial_grbl.send_gcode('C:/Users/muham/Desktop/gcode.txt')
+        check = send_gcode('gcode.txt')
 
-    elif statement == 3:    # Camera position adjustments
-        myfile.write("G00 X%s Y%s \n" % (str(x), str(y)))  # incremental mode should be used.
+    elif statement == State.GO_TO_CAMERA:  # GO TO CAMERA
+        myfile.write("X%s Y%s \n" % (str(CAMERA_POSITION[0]), str(CAMERA_POSITION[1])))
         myfile.close()
-        serial_grbl.send_gcode('C:/Users/muham/Desktop/gcode.txt')
+        check = send_gcode('gcode.txt')
 
-    elif statement == 4:    # Camera position adjustments
-        myfile.write("G01 X%s Y%s F5000\n" % (str(x), str(y)))  # absolute movement to placement location
+    elif statement == State.CAMERA_ADJUST:  # Camera position adjustments
+        myfile.write("G91 \nX%s Y%s \n" % (str(x), str(y)))  # incremental mode should be used.
         myfile.close()
-        serial_grbl.send_gcode('C:/Users/muham/Desktop/gcode.txt')
+        check = send_gcode('gcode.txt')
+
+    elif statement == State.PLACEMENT_LOC:
+        myfile.write("G90 \nX%s Y%s \n" % (str(x), str(y)))  # absolute movement to placement location
+        myfile.close()
+        check = send_gcode('gcode.txt')
+    if check == 0:
+        return 0
 
 
 def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
-
+    send_gcode('initial.txt')
     for i in range(len(feeder)):
         locations = indx[i]
         print("Picking: %s" % feeder[i])
         for k in range(len(locations)):
-            center_x, center_y, change_x, change_y = 0, 0, 0, 0
+            center_x, center_y, change_x, change_y ,check_x, check_y= 0, 0, 0, 0, 0, 0
             position_x = (float(x_coordinates[locations[k]]) / 100)
             position_y = (float(y_coordinates[locations[k]]) / 100)
-            gcode_generate(0, 0, 0, 0)
-            time.sleep(10)
-            gcode_generate(0, 0, 0, 1)  # PICKUP THE COMPONENT
-            time.sleep(10)
-            gcode_generate(0, 0, 0, 2)  # GO TO CAMERA POSITION
-            time.sleep(10)
-            while ((60 < center_x < 7000) and (35 < center_y < 4500)) is False:
+            gcode_generate(0, 0, 0, State.GO_TO_FEEDER)  # GO TO FEEDER POSITION
+            gcode_generate(0, 0, 0, State.PICK_UP)       # PICKUP THE COMPONENT
+            gcode_generate(0, 0, 0, State.GO_TO_CAMERA)  # GO TO CAMERA POSITION
+            time.sleep(1)
+            while (check_x and check_y) is 0:
                 data = None
                 while data is None:
+                    check_x = 0
+                    check_y = 0
                     data = camera.visual()
                 center_x = data[0]
                 center_y = data[1]
                 # current_angle = data[2]
-
+                if 150 < center_x < 200:
+                    check_x = 1
+                if 150 < center_y < 200:    # Camera sensitivity settings. These if statements defines that how many
+                                            # pixels can center point vary from the exact origin.
+                    check_y = 1
                 print(center_x, center_y)
-                gcode_generate((DEFINED_CENTER[0]-center_x), (DEFINED_CENTER[1]-center_y), 0, 3)
-                time.sleep(10)
+                gcode_generate((DEFINED_CENTER[0]-center_x), (DEFINED_CENTER[1]-center_y), 0, State.CAMERA_ADJUST)
                 change_x += (DEFINED_CENTER[0]-float(center_x))
                 change_y += (DEFINED_CENTER[1]-float(center_y))
 
-            gcode_generate(position_x, position_y, 0, 4)
-            time.sleep(10)
-            gcode_generate(0, 0, 0, 1)
-            time.sleep(10)
+            gcode_generate(position_x, position_y, 0, State.PLACEMENT_LOC)    # GO TO PLACEMENT POINT
+
+            gcode_generate(0, 0, 0, State.PLACE)  # PLACE THE COMPONENT
+
 
 
 def read_gerber():
@@ -131,7 +152,7 @@ def read_gerber():
 #                                                   int(float(angles[locations[k]]))))
 
     component_handle(type_names, indx_list, angles, x_coordinates, y_coordinates)
-    return type_names, indx_list, angles, x_coordinates, y_coordinates
+ #   return type_names, indx_list, angles, x_coordinates, y_coordinates
 
 
 act_serial()
