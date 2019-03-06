@@ -8,15 +8,18 @@ import time
 
 def visual():
 
+    cv2.namedWindow("Output")
     # address = "http://192.168.1.23:4747/video/"
     cap = cv2.VideoCapture(0)
     # address = "http://192.168.1.23:4747/cam/1/led_toggle"
-    #  urllib.request.urlopen(address)
-    time.sleep(2)
+    # urllib.request.urlopen(address)
     while 1:
         ret, image = cap.read()
         cv2.waitKey(1)
         image = image[140:500, 60:420]
+        image[180, 175:185] = (255, 0, 0)
+        image[175:185, 180] = (255, 0, 0)
+        image[180, 180] = (255, 255, 255)
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         gray = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 16)
         edged = cv2.Canny(gray, 50, 100)
@@ -28,12 +31,13 @@ def visual():
         for cnt in cnts:
             if 7000 < cv2.contourArea(cnt) < 20000:
                 perimeter = cv2.arcLength(cnt, True)
-                approx = cv2.approxPolyDP(cnt, 0.1 * perimeter, True)
+                approx = cv2.approxPolyDP(cnt, 0.12 * perimeter, True)
                 if len(approx) == 4:
                     mycnts.append(cnt)
 
         cv2.circle(image, (180, 180), 1, (255, 255, 255), -1)
         for cnt in mycnts:
+            data = []
             if 6500 < cv2.contourArea(cnt) < 21000:
                 rect = cv2.minAreaRect(cnt)
 #               box = cv2.boxPoints(rect)
@@ -51,15 +55,12 @@ def visual():
                             cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255), 1)
                 open('center_info.txt', 'w').close()
                 myfile = open('center_info.txt', 'a')
-                data = []
                 data.append((coor[0]))
                 data.append((coor[1]))
                 data.append(angle)
                 myfile.write(str(data))
+                cv2.drawContours(image, mycnts, -1, (0, 255, 0), 1)
+             #   cv2.imwrite("captured_image.jpg",image)
                 cv2.destroyAllWindows()
                 return data
-        cv2.drawContours(image, mycnts, -1, (0, 255, 0), 1)
-        image[180, 175:185] = (255, 0, 0)
-        image[175:185, 180] = (255, 0, 0)
-        image[180, 180] = (255, 255, 255)
         cv2.imshow("Output", image)

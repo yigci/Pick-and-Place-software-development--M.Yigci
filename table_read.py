@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import camera
-import serial_grbl
 import time
 from serial_grbl import send_gcode, act_serial
 from enum import Enum
@@ -25,39 +24,37 @@ def gcode_generate(x, y, angle, statement):
 
     with open('gcode.txt', "r") as f:      # Code between line 26-28 is to clear the gcode.txt file.
         f.read()
-    myfile = open('gcode.txt', "w")
+    command_file = open('gcode.txt', "w")
 
     if statement == State.GO_TO_FEEDER:    # Move to feeder position
-        myfile.write("X%s Y%s \n" % (str(FEEDER_POSITION[0]), str(FEEDER_POSITION[1])))  # write new gcode to the file.
-        myfile.close()                     # close file for next step.
-        check = send_gcode('gcode.txt')            # Send gcode to the controller.
+        command_file.write("X%s Y%s \n" % (str(FEEDER_POSITION[0]), str(FEEDER_POSITION[1])))  # write new gcode to the file.
+        command_file.close()                     # close file for next step.
+        send_gcode('gcode.txt')            # Send gcode to the controller.
 
     elif statement == State.PICK_UP:       # pick up
-        myfile.write("Z10 \nM08 \nZ20. \n")
-        myfile.close()
-        check = send_gcode('gcode.txt')
+        command_file.write("Z10 \nM08 \nZ20. \n")
+        command_file.close()
+        send_gcode('gcode.txt')
 
     elif statement == State.PLACE:         # place
-        myfile.write("Z10 \nM09 \nZ20. \n")
-        myfile.close()
-        check = send_gcode('gcode.txt')
+        command_file.write("Z10 \nM09 \nZ20. \n")
+        command_file.close()
+        send_gcode('gcode.txt')
 
     elif statement == State.GO_TO_CAMERA:  # GO TO CAMERA
-        myfile.write("X%s Y%s \n" % (str(CAMERA_POSITION[0]), str(CAMERA_POSITION[1])))
-        myfile.close()
-        check = send_gcode('gcode.txt')
+        command_file.write("X%s Y%s \n" % (str(CAMERA_POSITION[0]), str(CAMERA_POSITION[1])))
+        command_file.close()
+        send_gcode('gcode.txt')
 
     elif statement == State.CAMERA_ADJUST:  # Camera position adjustments
-        myfile.write("G91 \nX%s Y%s \n" % (str(x), str(y)))  # incremental mode should be used.
-        myfile.close()
-        check = send_gcode('gcode.txt')
+        command_file.write("G91 \nX%s Y%s \n" % (str(x), str(y)))  # incremental mode should be used.
+        command_file.close()
+        send_gcode('gcode.txt')
 
     elif statement == State.PLACEMENT_LOC:
-        myfile.write("G90 \nX%s Y%s \n" % (str(x), str(y)))  # absolute movement to placement location
-        myfile.close()
-        check = send_gcode('gcode.txt')
-    if check == 0:
-        return 0
+        command_file.write("G90 \nX%s Y%s \n" % (str(x), str(y)))  # absolute movement to placement location
+        command_file.close()
+        send_gcode('gcode.txt')
 
 
 def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
