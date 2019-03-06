@@ -53,14 +53,11 @@ def visual():
                 cv2.circle(image, (cx, cy), 1, (0, 0, 255), -1)
                 cv2.putText(image, "center: %f-%f  Angle: %f" % (coor[0], coor[1], angle), (15, 15),
                             cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255), 1)
-                open('center_info.txt', 'w').close()
-                myfile = open('center_info.txt', 'a')
+
                 data.append((coor[0]))
                 data.append((coor[1]))
                 data.append(angle)
-                myfile.write(str(data))
                 cv2.drawContours(image, mycnts, -1, (0, 255, 0), 1)
-             #   cv2.imwrite("captured_image.jpg",image)
                 cv2.destroyAllWindows()
                 return data
         cv2.imshow("Output", image)
