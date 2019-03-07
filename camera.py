@@ -8,18 +8,18 @@ import time
 
 def visual():
 
-    cv2.namedWindow("Output")
-    # address = "http://192.168.1.23:4747/video/"
+    # cv2.namedWindow("Output")
+    address = "http://192.168.43.244:4747/video?1280x720"
     cap = cv2.VideoCapture(0)
     # address = "http://192.168.1.23:4747/cam/1/led_toggle"
     # urllib.request.urlopen(address)
     while 1:
         ret, image = cap.read()
         cv2.waitKey(1)
-        image = image[140:500, 60:420]
-        image[180, 175:185] = (255, 0, 0)
-        image[175:185, 180] = (255, 0, 0)
-        image[180, 180] = (255, 255, 255)
+        # image = image[280:1000, 0:720]
+        # image[180, 175:185] = (255, 0, 0)
+        # image[175:185, 180] = (255, 0, 0)
+        # image[180, 180] = (255, 255, 255)
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         gray = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 16)
         edged = cv2.Canny(gray, 50, 100)

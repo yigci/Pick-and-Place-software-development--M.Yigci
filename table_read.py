@@ -16,8 +16,8 @@ class State(Enum):      # To make the program easier to understand, some of the 
 
 
 CAMERA_POSITION = [10, 0]   # Predefined constants.
-FEEDER_POSITION = [20, 0]
-DEFINED_CENTER = [180, 180]
+FEEDER_POSITION = [50, 0]
+DEFINED_CENTER = [360, 360]
 
 
 def gcode_generate(x, y, angle, statement):
@@ -63,7 +63,7 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
         locations = indx[i]
         print("Picking: %s" % feeder[i])
         for k in range(len(locations)):
-            center_x, center_y, change_x, change_y ,check_x, check_y= 0, 0, 0, 0, 0, 0
+            center_x, center_y, change_x, change_y ,check_x, check_y = 0, 0, 0, 0, 0, 0
             position_x = (float(x_coordinates[locations[k]]) / 100)
             position_y = (float(y_coordinates[locations[k]]) / 100)
             gcode_generate(0, 0, 0, State.GO_TO_FEEDER)  # GO TO FEEDER POSITION
