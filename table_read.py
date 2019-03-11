@@ -27,7 +27,7 @@ def gcode_generate(x, y, angle, statement):
     command_file = open('gcode.txt', "w")
 
     if statement == State.GO_TO_FEEDER:    # Move to feeder position
-        command_file.write("X%s Y%s \n" % (str(FEEDER_POSITION[0]), str(FEEDER_POSITION[1])))  # write new gcode to the file.
+        command_file.write("X%s Y%s \n" % (str(FEEDER_POSITION[0]), str(FEEDER_POSITION[1])))  # write gcode to the file
         command_file.close()                     # close file for next step.
         send_gcode('gcode.txt')            # Send gcode to the controller.
 
@@ -55,23 +55,40 @@ def gcode_generate(x, y, angle, statement):
         command_file.write("G90 \nX%s Y%s \n" % (str(x), str(y)))  # absolute movement to placement location
         command_file.close()
         send_gcode('gcode.txt')
+    elif statement == '?':
+        command_file.write("?")
+        command_file.close()
+        check = send_gcode('gcode.txt')
+        return check
 
 
 def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
     send_gcode('initial.txt')
+    print("Angle of the component is not included to the processes yet.(%f)", angle[0])
     for i in range(len(feeder)):
         locations = indx[i]
         print("Picking: %s" % feeder[i])
         for k in range(len(locations)):
-            center_x, center_y, change_x, change_y ,check_x, check_y = 0, 0, 0, 0, 0, 0
+            center_x, center_y, change_x, change_y, check_x, check_y = 0, 0, 0, 0, 0, 0
             position_x = (float(x_coordinates[locations[k]]) / 100)
             position_y = (float(y_coordinates[locations[k]]) / 100)
             gcode_generate(0, 0, 0, State.GO_TO_FEEDER)  # GO TO FEEDER POSITION
             gcode_generate(0, 0, 0, State.PICK_UP)       # PICKUP THE COMPONENT
             gcode_generate(0, 0, 0, State.GO_TO_CAMERA)  # GO TO CAMERA POSITION
             time.sleep(1)
+
             while (check_x and check_y) is 0:
                 data = None
+                check_if_running = 0
+
+                while gcode_generate(0, 0, 0, '?'):  # Continuously check if any of the axis is running.
+                    if check_if_running == 0:
+                        print("Already performing process. Waiting process to end.")
+                        check_if_running += 1
+                    time.sleep(0.1)
+                if check_if_running is not 0:
+                    print("Process have ended. Camera adjustment process started.")
+
                 while data is None:
                     check_x = 0
                     check_y = 0
@@ -94,43 +111,38 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
             gcode_generate(0, 0, 0, State.PLACE)  # PLACE THE COMPONENT
 
 
-
 def read_gerber():
-
     loc = "C:/Users/muham/Desktop/XY-coordinates.htm"
-#    loc = input("Enter full path of gerber file: ")
+    #    loc = input("Enter full path of gerber file: ")
 
     table = pd.read_html(loc)
     table = table[0]
-##
-#   X-coordinates are in column 5
-#   Y-coordinates are in column 6
-#   Angles are in column 7
-#   Mirror in colum 8
-#   names are in column 1
-##
+
     dimension = np.shape(table)
-#   column = dimension[1]
-    row = (dimension[0]-1)
+    row = dimension[0] - 1
+    components = table[1]
     x_coordinates = table[5]
     y_coordinates = table[6]
     angles = table[7]
-    components = table[1]
+    x_coordinates = list(x_coordinates)
+    y_coordinates = list(y_coordinates)
     components = list(components)
+    angles = list(angles)
+    del x_coordinates[0]
+    del y_coordinates[0]
     del components[0]
+    del angles[0]
     type_names = []
     type_names = list(type_names)
+    type_names.append(components[0])
 
     for i in range(row):
         is_new = 1
-        if i is 0:
+        for k in range(len(type_names)):
+            if type_names[k] == components[i]:
+                is_new = 0
+        if is_new is 1:
             type_names.append(components[i])
-        else:
-            for k in range(len(type_names)):
-                if type_names[k] == components[i]:
-                    is_new = 0
-            if is_new is 1:
-                type_names.append(components[i])
 
     indx_list = []
 
@@ -138,18 +150,10 @@ def read_gerber():
         indx = []
         for r in range(row):
             if components[r] == type_names[t]:
-                indx.append(r+1)
+                indx.append(r)
         indx_list.append(indx)
-#   for i in range(len(type_names)):
-#      locations = indx_list[i]
-#      print("Picking: %s" % type_names[i])
-#     for k in range(len(locations)):
-#     print("Coordinates: %4d-%4d \t Angle: %3d" % (int(float(x_coordinates[locations[k]])),
-#                                                   int(float(y_coordinates[locations[k]])),
-#                                                   int(float(angles[locations[k]]))))
 
     component_handle(type_names, indx_list, angles, x_coordinates, y_coordinates)
- #   return type_names, indx_list, angles, x_coordinates, y_coordinates
 
 
 act_serial()
