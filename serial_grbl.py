@@ -20,7 +20,8 @@ def send_gcode(address):
 
     for line in f:
         code = line.strip()  # Strip all EOL characters for streaming
-        print('Sending: ' + code)
+        if code is not '?':
+            print('Sending: ' + code)
         s.write((code + "\n").encode())  # Send g-code block to grbl
         grbl_out = s.readline()  # Wait for grbl response with carriage return
         ret = grbl_out.strip().decode()

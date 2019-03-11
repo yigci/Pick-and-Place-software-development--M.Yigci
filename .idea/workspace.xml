@@ -10,11 +10,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/serial_grbl.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="85">
-              <caret line="5" lean-forward="true" selection-start-line="5" selection-end-line="5" />
+            <state relative-caret-position="374">
+              <caret line="22" column="27" selection-end-line="42" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
               </folding>
@@ -25,8 +25,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/table_read.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="150">
-              <caret line="25" column="16" selection-start-line="25" selection-start-column="16" selection-end-line="25" selection-end-column="16" />
+            <state relative-caret-position="272">
+              <caret line="16" selection-end-line="160" />
               <folding>
                 <element signature="e#0#19#0" expanded="true" />
               </folding>
@@ -37,10 +37,30 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/camera.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="205">
-              <caret line="15" column="12" lean-forward="true" selection-start-line="15" selection-start-column="12" selection-end-line="15" selection-end-column="12" />
+            <state relative-caret-position="1071">
+              <caret line="63" selection-end-line="63" />
               <folding>
                 <element signature="e#32#50#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/pickandplace.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="306">
+              <caret line="37" column="104" selection-start-line="37" selection-start-column="104" selection-end-line="37" selection-end-column="104" />
+              <folding>
+                <element signature="e#0#18#0" expanded="true" />
+                <element signature="e#254#365#0" />
+                <element signature="e#177#446#0" />
+                <element signature="e#479#1250#0" />
+                <element signature="e#136#2469#0" />
+                <element signature="e#3814#5582#0" />
+                <element signature="e#5662#8000#0" />
+                <element signature="e#8026#9192#0" />
+                <element signature="e#9687#9740#0" />
               </folding>
             </state>
           </provider>
@@ -84,6 +104,7 @@
       <find>F100</find>
       <find>myfile</find>
       <find>visual</find>
+      <find>'gcode.txt'</find>
     </findStrings>
     <replaceStrings>
       <replace>cy</replace>
@@ -106,8 +127,9 @@
         <option value="$PROJECT_DIR$/initial.txt" />
         <option value="$PROJECT_DIR$/gerber_read.py" />
         <option value="$PROJECT_DIR$/table_read.py" />
-        <option value="$PROJECT_DIR$/camera.py" />
         <option value="$PROJECT_DIR$/serial_grbl.py" />
+        <option value="$PROJECT_DIR$/camera.py" />
+        <option value="$PROJECT_DIR$/pickandplace.py" />
       </list>
     </option>
   </component>
@@ -139,7 +161,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="settings.editor.selected.configurable" value="vcs.Git" />
+    <property name="settings.editor.selected.configurable" value="Errors" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -158,7 +180,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.table_read">
+  <component name="RunManager" selected="Python.pickandplace">
     <configuration name="camera" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="Work-in-progress" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -222,7 +244,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="serial_grbl" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="pickandplace" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="Work-in-progress" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -234,7 +256,7 @@
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/serial_grbl.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/pickandplace.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -267,17 +289,17 @@
     <list>
       <item itemvalue="Python.camera" />
       <item itemvalue="Python.center_detect" />
-      <item itemvalue="Python.serial_grbl" />
       <item itemvalue="Python.table_read" />
       <item itemvalue="Python.gerber_read" />
+      <item itemvalue="Python.pickandplace" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.pickandplace" />
+        <item itemvalue="Python.camera" />
         <item itemvalue="Python.table_read" />
         <item itemvalue="Python.gerber_read" />
-        <item itemvalue="Python.camera" />
         <item itemvalue="Python.center_detect" />
-        <item itemvalue="Python.serial_grbl" />
       </list>
     </recent_temporary>
   </component>
@@ -296,7 +318,6 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1382" height="784" extended-state="6" />
-    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.13392857" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -345,16 +366,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/initial.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="17">
-          <caret line="1" selection-start-line="1" selection-end-line="1" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/gcode.txt">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/gerber_read.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="731">
@@ -365,32 +376,60 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/table_read.py">
+    <entry file="file://$PROJECT_DIR$/initial.txt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="150">
-          <caret line="25" column="16" selection-start-line="25" selection-start-column="16" selection-end-line="25" selection-end-column="16" />
-          <folding>
-            <element signature="e#0#19#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="17">
+          <caret line="1" selection-start-line="1" selection-end-line="1" />
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/gcode.txt">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
     <entry file="file://$PROJECT_DIR$/camera.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="205">
-          <caret line="15" column="12" lean-forward="true" selection-start-line="15" selection-start-column="12" selection-end-line="15" selection-end-column="12" />
+        <state relative-caret-position="1071">
+          <caret line="63" selection-end-line="63" />
           <folding>
             <element signature="e#32#50#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/table_read.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="272">
+          <caret line="16" selection-end-line="160" />
+          <folding>
+            <element signature="e#0#19#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/serial_grbl.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="85">
-          <caret line="5" lean-forward="true" selection-start-line="5" selection-end-line="5" />
+        <state relative-caret-position="374">
+          <caret line="22" column="27" selection-end-line="42" />
           <folding>
             <element signature="e#0#13#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pickandplace.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="306">
+          <caret line="37" column="104" selection-start-line="37" selection-start-column="104" selection-end-line="37" selection-end-column="104" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+            <element signature="e#254#365#0" />
+            <element signature="e#177#446#0" />
+            <element signature="e#479#1250#0" />
+            <element signature="e#136#2469#0" />
+            <element signature="e#3814#5582#0" />
+            <element signature="e#5662#8000#0" />
+            <element signature="e#8026#9192#0" />
+            <element signature="e#9687#9740#0" />
           </folding>
         </state>
       </provider>
