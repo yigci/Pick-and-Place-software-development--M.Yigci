@@ -8,8 +8,8 @@ import serial
 
 
 s = None
-CAMERA_POSITION = [10, 0]   # Predefined constants.
-FEEDER_POSITION = [50, 0]
+CAMERA_POSITION = [50, 0]   # Predefined constants.
+FEEDER_POSITION = [100, 0]
 DEFINED_CENTER = [360, 360]
 
 
@@ -129,32 +129,32 @@ def gcode_generate(x, y, angle, statement):
     command_file = open(path, "w")
 
     if statement == State.GO_TO_FEEDER:    # Move to feeder position
-        command_file.write("X%s Y%s \n" % (str(FEEDER_POSITION[0]), str(FEEDER_POSITION[1])))  # write gcode to the file
+        command_file.write("X%s \n" % (str(FEEDER_POSITION[0])))  # write gcode to the file
         command_file.close()                     # close file for next step.
         send_gcode(path)            # Send gcode to the controller.
 
     elif statement == State.PICK_UP:       # pick up
-        command_file.write("Z10 \nM08 \nZ20. \n")
+        command_file.write("Z1 \nM08 \nZ0. \n")
         command_file.close()
         send_gcode(path)
 
     elif statement == State.PLACE:         # place
-        command_file.write("Z10 \nM09 \nZ20. \n")
+        command_file.write("Z1 \nM09 \nZ0. \n")
         command_file.close()
         send_gcode(path)
 
     elif statement == State.GO_TO_CAMERA:  # GO TO CAMERA
-        command_file.write("X%s Y%s \n" % (str(CAMERA_POSITION[0]), str(CAMERA_POSITION[1])))
+        command_file.write("X%s\n" % (str(CAMERA_POSITION[0])))
         command_file.close()
         send_gcode(path)
 
     elif statement == State.CAMERA_ADJUST:  # Camera position adjustments
-        command_file.write("G91 \nX%s Y%s \n" % (str(x), str(y)))  # incremental mode should be used.
+        command_file.write("G91 \nX%s\n" % (str(x)))  # incremental mode should be used.
         command_file.close()
         send_gcode(path)
 
     elif statement == State.PLACEMENT_LOC:
-        command_file.write("G90 \nX%s Y%s \n" % (str(x), str(y)))  # absolute movement to placement location
+        command_file.write("G90 \nX%s\n" % (str(x)))  # absolute movement to placement location
         command_file.close()
         send_gcode(path)
     elif statement == '?':
@@ -174,41 +174,38 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
         print("Picking: %s" % feeder[i])
         for k in range(len(locations)):
             center_x, center_y, change_x, change_y, check_x, check_y = 0, 0, 0, 0, 0, 0
-            position_x = (float(x_coordinates[locations[k]]) / 100)
-            position_y = (float(y_coordinates[locations[k]]) / 100)
+            position_x = (float(x_coordinates[locations[k]]) / 10)
+            position_y = (float(y_coordinates[locations[k]]) / 10)
             gcode_generate(0, 0, 0, State.GO_TO_FEEDER)  # GO TO FEEDER POSITION
             gcode_generate(0, 0, 0, State.PICK_UP)       # PICKUP THE COMPONENT
             gcode_generate(0, 0, 0, State.GO_TO_CAMERA)  # GO TO CAMERA POSITION
             time.sleep(1)
 
-            while (check_x and check_y) is 0:
-                data = None
-                check_if_running = 0
-
-                while gcode_generate(0, 0, 0, '?'):  # Continuously check if any of the axis is running.
-                    if check_if_running == 0:
-                        print("Already performing process. Waiting process to end.")
-                        check_if_running += 1
-                    time.sleep(0.1)
-                if check_if_running is 1:
-                    print("Process have ended. Camera adjustment process started.")
-
-                while data is None:
-                    check_x = 0
-                    check_y = 0
-                    data = visual()
-                center_x = data[0]
-                center_y = data[1]
-                # current_angle = data[2]
-                if 15 < center_x < 2000:
-                    check_x = 1
-                if 15 < center_y < 2000:    # Camera sensitivity settings. These if statements defines that how many
-                                            # pixels can center point vary from the exact origin.
-                    check_y = 1
-                print(center_x, center_y)
-                gcode_generate((DEFINED_CENTER[0]-center_x), (DEFINED_CENTER[1]-center_y), 0, State.CAMERA_ADJUST)
-                change_x += (DEFINED_CENTER[0]-float(center_x))
-                change_y += (DEFINED_CENTER[1]-float(center_y))
+            # while (check_x and check_y) is 0:
+            #     data = None
+            #     check_if_running = 0
+            #
+            #     while gcode_generate(0, 0, 0, '?'):  # Continuously check if any of the axis is running.
+            #         if check_if_running == 0:
+            #             print("Already performing process. Waiting process to end.")
+            #             check_if_running += 1
+            #         time.sleep(0.1)
+            #     if check_if_running is 1:
+            #         print("Process have ended. Camera adjustment process started.")
+            #
+            #     while data is None:
+            #         check_x = 0
+            #         check_y = 0
+            #         data = visual()
+            #     center_x = data[0]
+            #     center_y = data[1]
+            #     # current_angle = data[2]
+            #     if 15 < center_x < 2000:
+            #         check_x = 1
+            #     if 15 < center_y < 2000:    # Camera sensitivity settings. These if statements defines that how many
+            #                                 # pixels can center point vary from the exact origin.
+            #         check_y = 1
+            #     print(center_x, center_y)
 
             gcode_generate(position_x, position_y, 0, State.PLACEMENT_LOC)    # GO TO PLACEMENT POINT
             gcode_generate(0, 0, 0, State.PLACE)  # PLACE THE COMPONENT
