@@ -154,7 +154,7 @@ def gcode_generate(x, y, angle, statement):
         send_gcode(path)
 
     elif statement == State.PLACEMENT_LOC:
-        command_file.write("G90 \nX%s\n" % (str(x)))  # absolute movement to placement location
+        command_file.write("X%s\n" % (str(x)))  # absolute movement to placement location
         command_file.close()
         send_gcode(path)
     elif statement == '?':
@@ -174,8 +174,8 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
         print("Picking: %s" % feeder[i])
         for k in range(len(locations)):
             center_x, center_y, change_x, change_y, check_x, check_y = 0, 0, 0, 0, 0, 0
-            position_x = (float(x_coordinates[locations[k]]) / 10)
-            position_y = (float(y_coordinates[locations[k]]) / 10)
+            position_x = (float(x_coordinates[locations[k]]) / 100)
+            position_y = (float(y_coordinates[locations[k]]) / 100)
             gcode_generate(0, 0, 0, State.GO_TO_FEEDER)  # GO TO FEEDER POSITION
             gcode_generate(0, 0, 0, State.PICK_UP)       # PICKUP THE COMPONENT
             gcode_generate(0, 0, 0, State.GO_TO_CAMERA)  # GO TO CAMERA POSITION

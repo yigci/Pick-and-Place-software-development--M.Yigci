@@ -37,10 +37,10 @@ def visual():
         for cnt in cnts:
             if 1000 < cv2.contourArea(cnt) < 20000:
                 perimeter = cv2.arcLength(cnt, True)
-                approx = cv2.approxPolyDP(cnt, 0.11 * perimeter, True)
+                approx = cv2.approxPolyDP(cnt, 0.12 * perimeter, True)
                 if len(approx) == 4:
                     mycnts.append(cnt)
-
+        print(type(mycnts))
         cv2.circle(image, (origin, origin), 1, (255, 255, 255), -1)
         for cnt in mycnts:
             data = []
