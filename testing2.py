@@ -64,7 +64,7 @@ def visual():
 
     # cv2.namedWindow("Output")
     # address = "http://192.168.1.23:4747/video?1280x720"
-    # try another
+    # aşskdasdasddas
     cap = cv2.VideoCapture(0)
     while 1:
         ret, image = cap.read()
