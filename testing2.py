@@ -65,8 +65,6 @@ def visual():
     # cv2.namedWindow("Output")
     # address = "http://192.168.1.23:4747/video?1280x720"
     cap = cv2.VideoCapture(0)
-    # address = "http://192.168.1.23:4747/cam/1/led_toggle"
-    # urllib.request.urlopen(address)
     while 1:
         ret, image = cap.read()
         cv2.waitKey(1)
@@ -152,6 +150,7 @@ def gcode_generate(x, y, angle, statement):
 
 
 def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
+
     print("Do you want to load user defined GCode settings? (y/n)\n=> ")
     choice = input()
     choice.lower()
