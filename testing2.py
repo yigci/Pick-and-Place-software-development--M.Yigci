@@ -44,6 +44,8 @@ def send_gcode(gcode):
     code = gcode.splitlines()  # Strip all EOL characters for streaming
 
     for line in code:
+
+        check = 1
         print('Sending: ' + line)
         s.write((line + "\n").encode())  # Send g-code block to grbl
         grbl_out = s.readline()  # Wait for grbl response with carriage return
@@ -51,19 +53,13 @@ def send_gcode(gcode):
         if ret is not 'Sent':
             print(ret)
 
-        s.write(("?" + "\n").encode())
-        grbl_out = s.readline()  # Wait for grbl response with carriage return
-        ret = grbl_out.strip().decode()
-        if 'Run' in ret:
-            print("Running")
-            check = 1
-
-            while check is 1:
-                s.write(("?" + "\n").encode())
-                grbl_out = s.readline()  # Wait for grbl response with carriage return
-                ret = grbl_out.strip().decode()
-                if 'Idle' in ret:
-                    check = 0
+        while check is 1:
+            s.write(("?" + "\n").encode())
+            grbl_out = s.readline()  # Wait for grbl response with carriage return
+            ret = grbl_out.strip().decode()
+            if 'Idle' in ret:
+                check = 0
+            time.sleep(0.1)
 
     time.sleep(1)
     print("Transmission finished.")
@@ -136,7 +132,7 @@ def gcode_generate(x, y, angle, statement):
         send_gcode(gcode)            # Send gcode to the controller.
 
     elif statement == State.PICK_UP:       # pick up
-        gcode = "Z1 \nM08 \nZ0. \n"
+        gcode = "Z1 \nM08 \nZ0 \n"
         send_gcode(gcode)
 
     elif statement == State.PLACE:         # place
@@ -194,13 +190,13 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
                 # current_angle = data[2]
                 if 15 < center_x < 2000:
                     check_x = 1
-                if 15 < center_y < 2000:    # Camera sensitivity settings. These if statements defines that how many
-                                            # pixels can center point vary from the exact origin.
+                if 15 < center_y < 2000:    # Camera sensitivity settings. These 'if' statements defines that how many..
+                                            # ..pixels can center point vary from the defined origin.
                     check_y = 1
                 print(center_x, center_y)
                 pixel2mm = 15
                 # this value must be calculated during laboratory tests. It is the definition of the ratio
-                # of the conversion between pixel values and milimeter unit.
+                # of the conversion between pixel values and milimeter.
                 correction_x = (DEFINED_CENTER[0]-float(center_x))/pixel2mm
                 correction_y = (DEFINED_CENTER[1]-float(center_y))/pixel2mm
                 gcode_generate(correction_x, correction_y, 0, State.CAMERA_ADJUST)
