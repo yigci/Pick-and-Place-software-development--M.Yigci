@@ -161,12 +161,13 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
         initial = input("Enter initial settings path: ")
         send_gcode(initial)
     else:
-        initial = "G90"
+        initial = "G90"  # absolute distance mode
         if choice != "n":
             print("Error. Default settings will be used.")
         send_gcode(initial)
 
     print("Angle of the component is not included to the program yet.(%f)", angle[0])
+    # angle adjustments should be included to the program. Either servo or step motor can be used.
     for i in range(len(feeder)):
         locations = indx[i]
         print("Picking: %s" % feeder[i])
