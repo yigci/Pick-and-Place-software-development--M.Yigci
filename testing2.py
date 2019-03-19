@@ -41,20 +41,29 @@ def act_serial():
 def send_gcode(gcode):
 
     s.flushInput()  # Flush startup text in serial input
-    for line in gcode:
-        code = line.strip()  # Strip all EOL characters for streaming
-        if code is not '?':
-            print('Sending: ' + code)
-        s.write((code + "\n").encode())  # Send g-code block to grbl
+    code = gcode.splitlines()  # Strip all EOL characters for streaming
+
+    for line in code:
+        print('Sending: ' + line)
+        s.write((line + "\n").encode())  # Send g-code block to grbl
         grbl_out = s.readline()  # Wait for grbl response with carriage return
         ret = grbl_out.strip().decode()
-        print(ret)
+        if ret is not 'Sent':
+            print(ret)
 
-    s.write(("?" + "\n").encode())
-    grbl_out = s.readline()  # Wait for grbl response with carriage return
-    while 'Run' in grbl_out.strip().decode():
         s.write(("?" + "\n").encode())
         grbl_out = s.readline()  # Wait for grbl response with carriage return
+        ret = grbl_out.strip().decode()
+        if 'Run' in ret:
+            print("Running")
+            check = 1
+
+            while check is 1:
+                s.write(("?" + "\n").encode())
+                grbl_out = s.readline()  # Wait for grbl response with carriage return
+                ret = grbl_out.strip().decode()
+                if 'Idle' in ret:
+                    check = 0
 
     time.sleep(1)
     print("Transmission finished.")
@@ -62,8 +71,6 @@ def send_gcode(gcode):
 
 def visual():
 
-    # cv2.namedWindow("Output")
-    # address = "http://192.168.1.23:4747/video?1280x720"
     cap = cv2.VideoCapture(0)
     while 1:
         ret, image = cap.read()

@@ -10,7 +10,7 @@ def visual():
 
     # cv2.namedWindow("Output")
     address = "http://172.20.10.12:4747/video?1280x720"
-    cap = cv2.VideoCapture(1)
+    cap = cv2.VideoCapture(0)
     # address = "http://192.168.1.23:4747/cam/1/led_toggle"
     # urllib.request.urlopen(address)
     while 1:
