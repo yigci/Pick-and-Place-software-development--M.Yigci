@@ -10,7 +10,7 @@ import serial
 s = None
 CAMERA_POSITION = [10, 0]   # Predefined constants.
 FEEDER_POSITION = [50, 0]
-DEFINED_CENTER = [360, 360]
+DEFINED_CENTER = [240, 240]
 
 
 class State(Enum):      # To make the program easier to understand, some of the processes assigned to numbers.
@@ -57,12 +57,42 @@ def send_gcode(gcode):
             s.write(("?" + "\n").encode())
             grbl_out = s.readline()  # Wait for grbl response with carriage return
             ret = grbl_out.strip().decode()
+            time.sleep(0.1)
             if 'Idle' in ret:
                 check = 0
-            time.sleep(0.1)
 
     time.sleep(1)
     print("Transmission finished.")
+
+
+def gcode_generate(x, y, angle, statement):
+
+    if angle > 0:
+        print("Angle is received. \nAngle correction is not available right now.\nProceeding to next step.")
+
+    if statement == State.GO_TO_FEEDER:    # Move to feeder position
+        gcode = "X%s Y%s" % (str(FEEDER_POSITION[0]), str(FEEDER_POSITION[1]))
+        send_gcode(gcode)            # Send gcode to the controller.
+
+    elif statement == State.PICK_UP:       # pick up
+        gcode = "Z1 \nM08 \nZ0 \n"
+        send_gcode(gcode)
+
+    elif statement == State.PLACE:         # place
+        gcode = "Z1 \nM09 \nZ0. \n"
+        send_gcode(gcode)
+
+    elif statement == State.GO_TO_CAMERA:  # GO TO CAMERA
+        gcode = "X%s Y%s \n" % (str(CAMERA_POSITION[0]), str(CAMERA_POSITION[1]))
+        send_gcode(gcode)
+
+    elif statement == State.CAMERA_ADJUST:  # Camera position adjustments
+        gcode = "G91 \nX%s Y%s \n" % (str(x), str(y))
+        send_gcode(gcode)
+
+    elif statement == State.PLACEMENT_LOC:
+        gcode = "G90 \nX%s Y%s \n" % (str(x), str(y))
+        send_gcode(gcode)
 
 
 def visual():
@@ -122,36 +152,6 @@ def visual():
         cv2.imshow("Output", image)
 
 
-def gcode_generate(x, y, angle, statement):
-
-    if angle > 0:
-        print("Angle is received. \nAngle correction is not available right now.\nProceeding to next step.")
-
-    if statement == State.GO_TO_FEEDER:    # Move to feeder position
-        gcode = "X%s Y%s" % (str(FEEDER_POSITION[0]), str(FEEDER_POSITION[1]))
-        send_gcode(gcode)            # Send gcode to the controller.
-
-    elif statement == State.PICK_UP:       # pick up
-        gcode = "Z1 \nM08 \nZ0 \n"
-        send_gcode(gcode)
-
-    elif statement == State.PLACE:         # place
-        gcode = "Z1 \nM09 \nZ0. \n"
-        send_gcode(gcode)
-
-    elif statement == State.GO_TO_CAMERA:  # GO TO CAMERA
-        gcode = "X%s Y%s \n" % (str(CAMERA_POSITION[0]), str(CAMERA_POSITION[1]))
-        send_gcode(gcode)
-
-    elif statement == State.CAMERA_ADJUST:  # Camera position adjustments
-        gcode = "G91 \nX%s Y%s \n" % (str(x), str(y))
-        send_gcode(gcode)
-
-    elif statement == State.PLACEMENT_LOC:
-        gcode = "G90 \nX%s Y%s \n" % (str(x), str(y))
-        send_gcode(gcode)
-
-
 def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
 
     print("Do you want to load user defined GCode settings? (y/n)\n=> ")
@@ -179,25 +179,22 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
             gcode_generate(0, 0, 0, State.PICK_UP)       # PICKUP THE COMPONENT
             gcode_generate(0, 0, 0, State.GO_TO_CAMERA)  # GO TO CAMERA POSITION
 
-            while (check_x and check_y) is 0:
+            while 1:
                 data = None
                 while data is None:
-                    check_x = 0
-                    check_y = 0
                     data = visual()
 
                 center_x = data[0]
                 center_y = data[1]
                 # current_angle = data[2]
-                if 15 < center_x < 2000:
-                    check_x = 1
-                if 15 < center_y < 2000:    # Camera sensitivity settings. These 'if' statements defines that how many..
-                                            # ..pixels can center point vary from the defined origin.
-                    check_y = 1
+                if (220 < center_x < 260) and (220 < center_y < 260):
+                    break
+                # Camera sensitivity settings. This 'if' statement defines that how many..
+                # ..pixels can center point vary from the defined origin.
                 print(center_x, center_y)
                 pixel2mm = 15
                 # this value must be calculated during laboratory tests. It is the definition of the ratio
-                # of the conversion between pixel values and milimeter.
+                # of the conversion between pixel values and milimeter. It depends on the Z-axis height.
                 correction_x = (DEFINED_CENTER[0]-float(center_x))/pixel2mm
                 correction_y = (DEFINED_CENTER[1]-float(center_y))/pixel2mm
                 gcode_generate(correction_x, correction_y, 0, State.CAMERA_ADJUST)

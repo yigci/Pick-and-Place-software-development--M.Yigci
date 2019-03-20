@@ -78,11 +78,16 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/testing2.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2830">
-              <caret line="193" column="100" selection-start-line="193" selection-start-column="100" selection-end-line="193" selection-end-column="100" />
+            <state relative-caret-position="225">
+              <caret line="190" column="25" lean-forward="true" selection-start-line="190" selection-start-column="25" selection-end-line="190" selection-end-column="25" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
                 <element signature="e#347#458#0" />
+                <element signature="e#484#1079#0" />
+                <element signature="e#1110#1887#0" />
+                <element signature="e#1912#2927#0" />
+                <element signature="e#1909#4181#0" />
+                <element signature="e#7951#9117#0" />
               </folding>
             </state>
           </provider>
@@ -227,7 +232,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.camera">
+  <component name="RunManager" selected="Python.testing2">
     <configuration name="camera" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="Work-in-progress" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -342,8 +347,8 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.camera" />
         <item itemvalue="Python.testing2" />
+        <item itemvalue="Python.camera" />
         <item itemvalue="Python.testing" />
         <item itemvalue="Python.pickandplace" />
         <item itemvalue="Python.table_read" />
@@ -417,19 +422,32 @@
       <option name="project" value="LOCAL" />
       <updated>1553030366525</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="update">
+      <created>1553030796396</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1553030796396</updated>
+    </task>
+    <task id="LOCAL-00010" summary="comment">
+      <created>1553031412186</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1553031412186</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1382" height="784" extended-state="6" />
-    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.14285715" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.32872504" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.49702382" weight="0.29339477" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.49702382" visible="true" weight="0.29339477" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.39938557" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -500,7 +518,8 @@
     </ignored-roots>
     <MESSAGE value="test" />
     <MESSAGE value="update" />
-    <option name="LAST_COMMIT_MESSAGE" value="update" />
+    <MESSAGE value="comment" />
+    <option name="LAST_COMMIT_MESSAGE" value="comment" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$USER_HOME$/Desktop/Yeni klasör/learning/combine.py" />
@@ -565,6 +584,18 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/pickandplace.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="136">
+          <caret line="14" selection-start-line="14" selection-end-line="14" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+            <element signature="e#347#458#0" />
+            <element signature="e#484#1066#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/testing.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2482">
@@ -585,25 +616,18 @@
     <entry file="file://$PROJECT_DIR$/gcode.txt">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/pickandplace.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="136">
-          <caret line="14" selection-start-line="14" selection-end-line="14" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-            <element signature="e#347#458#0" />
-            <element signature="e#484#1066#0" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/testing2.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2830">
-          <caret line="193" column="100" selection-start-line="193" selection-start-column="100" selection-end-line="193" selection-end-column="100" />
+        <state relative-caret-position="225">
+          <caret line="190" column="25" lean-forward="true" selection-start-line="190" selection-start-column="25" selection-end-line="190" selection-end-column="25" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
             <element signature="e#347#458#0" />
+            <element signature="e#484#1079#0" />
+            <element signature="e#1110#1887#0" />
+            <element signature="e#1912#2927#0" />
+            <element signature="e#1909#4181#0" />
+            <element signature="e#7951#9117#0" />
           </folding>
         </state>
       </provider>
