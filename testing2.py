@@ -45,7 +45,7 @@ def send_gcode(gcode):
 
     for line in code:
 
-     #   check = 1
+        # check = 1
         print('Sending: ' + line)
         s.write((line + "\n").encode())  # Send g-code block to grbl
         grbl_out = s.readline()  # Wait for grbl response with carriage return
