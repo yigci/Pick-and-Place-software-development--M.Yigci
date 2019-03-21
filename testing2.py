@@ -45,7 +45,7 @@ def send_gcode(gcode):
 
     for line in code:
 
-        check = 1
+     #   check = 1
         print('Sending: ' + line)
         s.write((line + "\n").encode())  # Send g-code block to grbl
         grbl_out = s.readline()  # Wait for grbl response with carriage return
@@ -53,13 +53,13 @@ def send_gcode(gcode):
         if ret is not 'Sent':
             print(ret)
 
-        while check is 1:
-            s.write(("?" + "\n").encode())
-            grbl_out = s.readline()  # Wait for grbl response with carriage return
-            ret = grbl_out.strip().decode()
-            time.sleep(0.1)
-            if 'Idle' in ret:
-                check = 0
+        # while check is 1:
+        #     s.write(("?" + "\n").encode())
+        #     grbl_out = s.readline()  # Wait for grbl response with carriage return
+        #     ret = grbl_out.strip().decode()
+        #     time.sleep(0.1)
+        #     if 'Idle' in ret:
+        #         check = 0
 
     time.sleep(1)
     print("Transmission finished.")
@@ -75,11 +75,11 @@ def gcode_generate(x, y, angle, statement):
         send_gcode(gcode)            # Send gcode to the controller.
 
     elif statement == State.PICK_UP:       # pick up
-        gcode = "Z1 \nM08 \nZ0 \n"
+        gcode = "Z50 \nM08 \nZ0 \n"
         send_gcode(gcode)
 
     elif statement == State.PLACE:         # place
-        gcode = "Z1 \nM09 \nZ0. \n"
+        gcode = "Z50 \nM09 \nZ0. \n"
         send_gcode(gcode)
 
     elif statement == State.GO_TO_CAMERA:  # GO TO CAMERA
@@ -87,16 +87,16 @@ def gcode_generate(x, y, angle, statement):
         send_gcode(gcode)
 
     elif statement == State.CAMERA_ADJUST:  # Camera position adjustments
-        gcode = "G91 \nX%s Y%s \n" % (str(x), str(y))
+        gcode = "G91 \nX%s Y%s \nG90" % (str(x), str(y))
         send_gcode(gcode)
 
     elif statement == State.PLACEMENT_LOC:
-        gcode = "G90 \nX%s Y%s \n" % (str(x), str(y))
+        gcode = "X%s Y%s \n" % (str(x), str(y))
         send_gcode(gcode)
 
 
 def visual():
-
+    cv2.namedWindow("Output")
     cap = cv2.VideoCapture(0)
     while 1:
         ret, image = cap.read()
@@ -144,7 +144,6 @@ def visual():
                 data.append((coor[1]))
                 data.append(angle)
                 cv2.drawContours(image, mycnts, -1, (0, 255, 0), 1)
-                cv2.destroyAllWindows()
                 return data
 
         image[origin, origin-5:origin+5] = (255, 0, 0)
