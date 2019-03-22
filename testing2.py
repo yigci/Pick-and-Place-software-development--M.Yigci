@@ -6,14 +6,13 @@ import time
 from enum import Enum
 import serial
 
-
 s = None
-CAMERA_POSITION = [10, 0]   # Predefined constants.
+CAMERA_POSITION = [10, 0]  # Predefined constants.
 FEEDER_POSITION = [50, 0]
 DEFINED_CENTER = [240, 240]
 
 
-class State(Enum):      # To make the program easier to understand, some of the processes assigned to numbers.
+class State(Enum):  # To make the program easier to understand, some of the processes assigned to numbers.
     GO_TO_FEEDER = 0
     PICK_UP = 1
     PLACE = 2
@@ -23,23 +22,21 @@ class State(Enum):      # To make the program easier to understand, some of the 
 
 
 def act_serial():
-
     global s
     serial_address = input("Enter connection port of the GRBL controller.\nIn format of 'COM+number': ")
     baudrate = input("Enter Baudrate. Default is (115200). Do not change if not necessary.\n=> ")
     try:
-        s = serial.Serial(serial_address, baudrate)   # connect to controller
+        s = serial.Serial(serial_address, baudrate)  # connect to controller
     except serial.serialutil.SerialException:
         print("Connection failed.")
         return 0
 
     print("Connection established.")
-    s.write("\r\n\r\n".encode())        # Wake up grbl
-    time.sleep(2)                       # A few seconds is necessary for grbl until it accepts commands.
+    s.write("\r\n\r\n".encode())  # Wake up grbl
+    time.sleep(2)  # A few seconds is necessary for grbl until it accepts commands.
 
 
 def send_gcode(gcode):
-
     s.flushInput()  # Flush startup text in serial input
     code = gcode.splitlines()  # Strip all EOL characters for streaming
 
@@ -66,19 +63,18 @@ def send_gcode(gcode):
 
 
 def gcode_generate(x, y, angle, statement):
-
     if angle > 0:
         print("Angle is received. \nAngle correction is not available right now.\nProceeding to next step.")
 
-    if statement == State.GO_TO_FEEDER:    # Move to feeder position
+    if statement == State.GO_TO_FEEDER:  # Move to feeder position
         gcode = "X%s Y%s" % (str(FEEDER_POSITION[0]), str(FEEDER_POSITION[1]))
-        send_gcode(gcode)            # Send gcode to the controller.
+        send_gcode(gcode)  # Send gcode to the controller.
 
-    elif statement == State.PICK_UP:       # pick up
+    elif statement == State.PICK_UP:  # pick up
         gcode = "Z50 \nM08 \nZ0 \n"
         send_gcode(gcode)
 
-    elif statement == State.PLACE:         # place
+    elif statement == State.PLACE:  # place
         gcode = "Z50 \nM09 \nZ0. \n"
         send_gcode(gcode)
 
@@ -103,9 +99,9 @@ def visual():
         cv2.waitKey(1)
         res_y = int(len(image[0]))
         res_x = int(len(image))
-        starty = int((res_y-res_x)/2)
-        image = image[:, starty:starty+res_x]
-        origin = int(res_x/2)
+        starty = int((res_y - res_x) / 2)
+        image = image[:, starty:starty + res_x]
+        origin = int(res_x / 2)
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         gray = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 16)
         edged = cv2.Canny(gray, 50, 100)
@@ -126,9 +122,9 @@ def visual():
             data = []
             if 6500 < cv2.contourArea(cnt) < 21000:
                 rect = cv2.minAreaRect(cnt)
-#               box = cv2.boxPoints(rect)
-#               box = np.int0(box)
-#               cv2.drawContours(image, [box], 0, (0, 0, 255), 2)
+                #               box = cv2.boxPoints(rect)
+                #               box = np.int0(box)
+                #               cv2.drawContours(image, [box], 0, (0, 0, 255), 2)
                 rect = list(rect)
                 angle = list(np.float_(rect[2:3]))
                 angle = float(angle[0])
@@ -146,13 +142,12 @@ def visual():
                 cv2.drawContours(image, mycnts, -1, (0, 255, 0), 1)
                 return data
 
-        image[origin, origin-5:origin+5] = (255, 0, 0)
-        image[origin-5:origin+5, origin] = (255, 0, 0)
+        image[origin, origin - 5:origin + 5] = (255, 0, 0)
+        image[origin - 5:origin + 5, origin] = (255, 0, 0)
         cv2.imshow("Output", image)
 
 
 def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
-
     print("Do you want to load user defined GCode settings? (y/n)\n=> ")
     choice = input()
     choice.lower()
@@ -175,7 +170,7 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
             position_x = (float(x_coordinates[locations[k]]) / 100)
             position_y = (float(y_coordinates[locations[k]]) / 100)
             gcode_generate(0, 0, 0, State.GO_TO_FEEDER)  # GO TO FEEDER POSITION
-            gcode_generate(0, 0, 0, State.PICK_UP)       # PICKUP THE COMPONENT
+            gcode_generate(0, 0, 0, State.PICK_UP)  # PICKUP THE COMPONENT
             gcode_generate(0, 0, 0, State.GO_TO_CAMERA)  # GO TO CAMERA POSITION
 
             while 1:
@@ -194,18 +189,18 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
                 pixel2mm = 15
                 # this value must be calculated during laboratory tests. It is the definition of the ratio
                 # of the conversion between pixel values and milimeter. It depends on the Z-axis height.
-                correction_x = (DEFINED_CENTER[0]-float(center_x))/pixel2mm
-                correction_y = (DEFINED_CENTER[1]-float(center_y))/pixel2mm
+                correction_x = (DEFINED_CENTER[0] - float(center_x)) / pixel2mm
+                correction_y = (DEFINED_CENTER[1] - float(center_y)) / pixel2mm
                 gcode_generate(correction_x, correction_y, 0, State.CAMERA_ADJUST)
                 change_x += correction_x
                 change_y += correction_y
 
-            gcode_generate(position_x+change_x, position_y+change_y, 0, State.PLACEMENT_LOC)    # GO TO PLACEMENT POINT
+            gcode_generate(position_x + change_x, position_y + change_y, 0,
+                           State.PLACEMENT_LOC)  # GO TO PLACEMENT POINT
             gcode_generate(0, 0, 0, State.PLACE)  # PLACE THE COMPONENT
 
 
 def read_gerber():
-
     # loc = input("Enter full path of gerber file: ")
     loc = "C:/Users/muham/Desktop/XY-coordinates.htm"
     table = pd.read_html(loc)
@@ -249,7 +244,6 @@ def read_gerber():
 
 
 def start():
-
     while act_serial() == 0:
         print("Check your device path.")
     read_gerber()
