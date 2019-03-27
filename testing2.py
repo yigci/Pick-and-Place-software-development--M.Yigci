@@ -75,11 +75,11 @@ def gcode_generate(x, y, angle, statement):
         send_gcode(gcode)
 
     elif statement == State.PLACE:  # place
-        gcode = "Z50 \nM09 \nZ0. \n"
+        gcode = "Z50 \nM10 \nZ0. \n"
         send_gcode(gcode)
 
     elif statement == State.GO_TO_CAMERA:  # GO TO CAMERA
-        gcode = "X%s Y%s \n" % (str(CAMERA_POSITION[0]), str(CAMERA_POSITION[1]))
+        gcode = "X%s Y%s \nM7\n" % (str(CAMERA_POSITION[0]), str(CAMERA_POSITION[1]))
         send_gcode(gcode)
 
     elif statement == State.CAMERA_ADJUST:  # Camera position adjustments
@@ -87,7 +87,7 @@ def gcode_generate(x, y, angle, statement):
         send_gcode(gcode)
 
     elif statement == State.PLACEMENT_LOC:
-        gcode = "X%s Y%s \n" % (str(x), str(y))
+        gcode = "M9\nX%s Y%s \n" % (str(x), str(y))
         send_gcode(gcode)
 
 
