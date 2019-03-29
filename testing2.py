@@ -78,7 +78,7 @@ def gcode_generate(x, y, angle, statement):
         send_gcode(gcode)
 
     elif statement == State.PLACE:  # place
-        gcode = "Z50 \nM10 \nZ0. \n"
+        gcode = "M9 \nZ50 \nM10 \nZ0 \n"
         send_gcode(gcode)
 
     elif statement == State.GO_TO_CAMERA:  # GO TO CAMERA
@@ -90,10 +90,10 @@ def gcode_generate(x, y, angle, statement):
         send_gcode(gcode)
 
     elif statement == State.PLACEMENT_LOC:
-        gcode = "M9\nX%s Y%s \n" % (str(x), str(y))
+        gcode = "X%s Y%s \n" % (str(x), str(y))
         send_gcode(gcode)
     elif statement == State.SET_RELATIVE_OFFSET:
-        gcode = "G20 L20 P1 X%s Y%s" % (str(x), str(y))
+        gcode = "G10 L20 P1 X%s Y%s" % (str(x), str(y))
         send_gcode(gcode)
 
 
@@ -208,6 +208,9 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
 
 def read_gerber():
     # loc = input("Enter full path of gerber file: ")
+    offset_x, offset_y = input("Enter board reference point:").split()
+    gcode_generate(offset_x, offset_y, 0, State.SET_RELATIVE_OFFSET)
+    gcode_generate(0, 0, 0, State.PLACEMENT_LOC)  # nothing to place. the aim is to go to reference point.(WPos = '0')
     loc = "C:/Users/muham/Desktop/XY-coordinates.htm"
     table = pd.read_html(loc)
     table = table[0]
