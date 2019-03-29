@@ -22,6 +22,7 @@ class State(Enum):  # To make the program easier to understand, some of the proc
     CAMERA_ADJUST = 4
     PLACEMENT_LOC = 5
     SET_RELATIVE_OFFSET = 6  # This option changes machine's current position to given coordinates.(only x and y axis)
+    ANGLE_CORRECTION = 7
 
 
 def act_serial():
@@ -66,8 +67,6 @@ def send_gcode(gcode):
 
 
 def gcode_generate(x, y, angle, statement):
-    if angle > 0:
-        print("Angle is received. \nAngle correction is not available right now.\nProceeding to next step.")
 
     if statement == State.GO_TO_FEEDER:  # Move to feeder position
         gcode = "X%s Y%s" % (str(FEEDER_POSITION[0]), str(FEEDER_POSITION[1]))
@@ -94,6 +93,9 @@ def gcode_generate(x, y, angle, statement):
         send_gcode(gcode)
     elif statement == State.SET_RELATIVE_OFFSET:
         gcode = "G10 L20 P1 X%s Y%s" % (str(x), str(y))
+        send_gcode(gcode)
+    elif statement == State.ANGLE_CORRECTION:
+        gcode = "A%s" % str(angle)
         send_gcode(gcode)
 
 
@@ -166,7 +168,7 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
             print("Error. Default settings will be used.")
         send_gcode(initial)
 
-    print("Angle of the component is not included to the program yet.(%f)", angle[0])
+    # print("Angle of the component is not included to the program yet.(%f)", angle[0])
     # angle adjustments should be included to the program. Either servo or step motor can be used.
     for i in range(len(feeder)):
         locations = indx[i]
@@ -175,10 +177,15 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
             center_x, center_y, change_x, change_y, check_x, check_y = 0, 0, 0, 0, 0, 0
             position_x = (float(x_coordinates[locations[k]]) / 100)
             position_y = (float(y_coordinates[locations[k]]) / 100)
+            comp_angle = float(angle[locations[k]])
             gcode_generate(0, 0, 0, State.GO_TO_FEEDER)  # GO TO FEEDER POSITION
             gcode_generate(0, 0, 0, State.PICK_UP)  # PICKUP THE COMPONENT
             gcode_generate(0, 0, 0, State.GO_TO_CAMERA)  # GO TO CAMERA POSITION
+            gcode_generate(0, 0, comp_angle, State.ANGLE_CORRECTION)
+            # this is not actually a correction. Initially set component angle to its necessary value.
 
+            is_center_ready = 0
+            is_angle_ready = 0
             while 1:
                 data = None
                 while data is None:
@@ -186,20 +193,30 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
 
                 center_x = data[0]
                 center_y = data[1]
-                # current_angle = data[2]
+                current_angle = float(data[2])
                 if (220 < center_x < 260) and (220 < center_y < 260):
-                    break
+                    is_center_ready = 1
+                if abs(current_angle-comp_angle) < 1:
+                    is_angle_ready = 1
+                # if is_angle_ready and is_center_ready:
+                #     break
                 # Camera sensitivity settings. This 'if' statement defines that how many..
                 # ..pixels can center point vary from the defined origin.
-                print(center_x, center_y)
+                # print(center_x, center_y)
                 pixel2mm = 15
                 # this value must be calculated during laboratory tests. It is the definition of the ratio
                 # of the conversion between pixel values and milimeter. It depends on the Z-axis height.
-                correction_x = (DEFINED_CENTER[0] - float(center_x)) / pixel2mm
-                correction_y = (DEFINED_CENTER[1] - float(center_y)) / pixel2mm
-                gcode_generate(correction_x, correction_y, 0, State.CAMERA_ADJUST)
-                change_x += correction_x
-                change_y += correction_y
+                if is_center_ready is not 1:
+                    correction_x = (DEFINED_CENTER[0] - float(center_x)) / pixel2mm
+                    correction_y = (DEFINED_CENTER[1] - float(center_y)) / pixel2mm
+                    gcode_generate(correction_x, correction_y, 0, State.CAMERA_ADJUST)
+                    change_x += correction_x
+                    change_y += correction_y
+                if is_angle_ready is not 1:
+                    correction_angle = comp_angle - current_angle
+                    gcode_generate(0, 0, correction_angle, State.ANGLE_CORRECTION)  # angle correction
+                if is_center_ready and is_angle_ready:
+                    break
 
             gcode_generate(position_x + change_x, position_y + change_y, 0,
                            State.PLACEMENT_LOC)  # GO TO PLACEMENT POINT
@@ -208,9 +225,9 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
 
 def read_gerber():
     # loc = input("Enter full path of gerber file: ")
-    offset_x, offset_y = input("Enter board reference point:").split()
-    gcode_generate(offset_x, offset_y, 0, State.SET_RELATIVE_OFFSET)
-    gcode_generate(0, 0, 0, State.PLACEMENT_LOC)  # nothing to place. the aim is to go to reference point.(WPos = '0')
+    # offset_x, offset_y = input("Enter board reference point:").split()
+    # gcode_generate(offset_x, offset_y, 0, State.SET_RELATIVE_OFFSET)
+    # gcode_generate(0, 0, 0, State.PLACEMENT_LOC)  # nothing to place. the aim is to go to reference point.(WPos = '0')
     loc = "C:/Users/muham/Desktop/XY-coordinates.htm"
     table = pd.read_html(loc)
     table = table[0]
@@ -227,10 +244,11 @@ def read_gerber():
     del x_coordinates[0]
     del y_coordinates[0]
     del components[0]
-    del angles[0]
+    del angles[0]   # angles read from gerber file
+    angle_index = []  # new list that will hold angle values of indexed components
     type_names = []
     type_names = list(type_names)
-    type_names.append(components[0])
+    type_names.append(components[0])    # add first component to type list.
 
     for i in range(row):
         is_new = 1
@@ -241,7 +259,7 @@ def read_gerber():
             type_names.append(components[i])
 
     indx_list = []
-
+    angle_list = []
     for t in range(len(type_names)):
         indx = []
         for r in range(row):
