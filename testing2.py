@@ -5,6 +5,8 @@ import pandas as pd
 import time
 from enum import Enum
 import serial
+from serial.tools.list_ports import comports
+
 
 s = None
 CAMERA_POSITION = [10, 0]  # Predefined constants.
@@ -19,6 +21,7 @@ class State(Enum):  # To make the program easier to understand, some of the proc
     GO_TO_CAMERA = 3
     CAMERA_ADJUST = 4
     PLACEMENT_LOC = 5
+    SET_RELATIVE_OFFSET = 6  # This option changes machine's current position to given coordinates.(only x and y axis)
 
 
 def act_serial():
@@ -88,6 +91,9 @@ def gcode_generate(x, y, angle, statement):
 
     elif statement == State.PLACEMENT_LOC:
         gcode = "M9\nX%s Y%s \n" % (str(x), str(y))
+        send_gcode(gcode)
+    elif statement == State.SET_RELATIVE_OFFSET:
+        gcode = "G20 L20 P1 X%s Y%s" % (str(x), str(y))
         send_gcode(gcode)
 
 
@@ -244,6 +250,13 @@ def read_gerber():
 
 
 def start():
+
+    iterator = comports(include_links='s')
+    print("Device(s) found at port(s):")
+    count = 1
+    for n, (port, desc, hwid) in enumerate(iterator):
+        print("%d: %s" % (count, port))
+
     while act_serial() == 0:
         print("Check your device path.")
     read_gerber()
