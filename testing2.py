@@ -178,10 +178,10 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
             position_x = (float(x_coordinates[locations[k]]) / 100)
             position_y = (float(y_coordinates[locations[k]]) / 100)
             comp_angle = float(angle[locations[k]])
-            gcode_generate(0, 0, 0, State.GO_TO_FEEDER)  # GO TO FEEDER POSITION
-            gcode_generate(0, 0, 0, State.PICK_UP)  # PICKUP THE COMPONENT
-            gcode_generate(0, 0, 0, State.GO_TO_CAMERA)  # GO TO CAMERA POSITION
-            gcode_generate(0, 0, comp_angle, State.ANGLE_CORRECTION)
+            gcode_generate(None, None, None, State.GO_TO_FEEDER)  # GO TO FEEDER POSITION
+            gcode_generate(None, None, None, State.PICK_UP)  # PICKUP THE COMPONENT
+            gcode_generate(None, None, None, State.GO_TO_CAMERA)  # GO TO CAMERA POSITION
+            gcode_generate(None, None, comp_angle, State.ANGLE_CORRECTION)
             # this is not actually a correction. Initially set component angle to its necessary value.
 
             is_center_ready = 0
@@ -198,11 +198,7 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
                     is_center_ready = 1
                 if abs(current_angle-comp_angle) < 1:
                     is_angle_ready = 1
-                # if is_angle_ready and is_center_ready:
-                #     break
-                # Camera sensitivity settings. This 'if' statement defines that how many..
-                # ..pixels can center point vary from the defined origin.
-                # print(center_x, center_y)
+
                 pixel2mm = 15
                 # this value must be calculated during laboratory tests. It is the definition of the ratio
                 # of the conversion between pixel values and milimeter. It depends on the Z-axis height.
@@ -214,21 +210,20 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
                     change_y += correction_y
                 if is_angle_ready is not 1:
                     correction_angle = comp_angle - current_angle
-                    gcode_generate(0, 0, correction_angle, State.ANGLE_CORRECTION)  # angle correction
+                    gcode_generate(None, None, correction_angle, State.ANGLE_CORRECTION)  # angle correction
                 if is_center_ready and is_angle_ready:
                     break
 
-            gcode_generate(position_x + change_x, position_y + change_y, 0,
-                           State.PLACEMENT_LOC)  # GO TO PLACEMENT POINT
-            gcode_generate(0, 0, 0, State.PLACE)  # PLACE THE COMPONENT
+            gcode_generate(position_x + change_x, position_y + change_y, None, State.PLACEMENT_LOC)  # go placement loc.
+            gcode_generate(None, None, None, State.PLACE)  # PLACE THE COMPONENT
 
 
-def read_gerber():
+def read_gerber_htm(loc):
     # loc = input("Enter full path of gerber file: ")
-    # offset_x, offset_y = input("Enter board reference point:").split()
-    # gcode_generate(offset_x, offset_y, 0, State.SET_RELATIVE_OFFSET)
-    # gcode_generate(0, 0, 0, State.PLACEMENT_LOC)  # nothing to place. the aim is to go to reference point.(WPos = '0')
-    loc = "C:/Users/muham/Desktop/XY-coordinates.htm"
+    offset_x, offset_y = input("Enter board reference point:").split()
+    gcode_generate(offset_x, offset_y, 0, State.SET_RELATIVE_OFFSET)
+    gcode_generate(0, 0, 0, State.PLACEMENT_LOC)  # nothing to place. go to reference point.(WPos = '0,0,0')
+    # loc = "C:/Users/muham/Desktop/XY-coordinates.htm"
     table = pd.read_html(loc)
     table = table[0]
     dimension = np.shape(table)
@@ -245,7 +240,6 @@ def read_gerber():
     del y_coordinates[0]
     del components[0]
     del angles[0]   # angles read from gerber file
-    angle_index = []  # new list that will hold angle values of indexed components
     type_names = []
     type_names = list(type_names)
     type_names.append(components[0])    # add first component to type list.
@@ -259,7 +253,6 @@ def read_gerber():
             type_names.append(components[i])
 
     indx_list = []
-    angle_list = []
     for t in range(len(type_names)):
         indx = []
         for r in range(row):
@@ -270,17 +263,71 @@ def read_gerber():
     component_handle(type_names, indx_list, angles, x_coordinates, y_coordinates)
 
 
+def read_gerber(loc):
+
+    offset_x, offset_y = input("Enter board reference point:").split()
+    gcode_generate(offset_x, offset_y, 0, State.SET_RELATIVE_OFFSET)
+    gcode_generate(0, 0, 0, State.PLACEMENT_LOC)  # nothing to place. go to reference point.(WPos = '0,0,0')
+    f = open(loc, "r")
+    count = 0
+    foundat = 0
+
+    x_coordinates, y_coordinates, angles, components, mylist =[], [], [], [], []
+
+    for lines in f.readlines():
+        mylist.append(lines)
+        count += 1
+        if "REFDES" in lines:
+            foundat = count
+    f.close()
+    for i in range(foundat):
+        del mylist[0]
+
+    for lines in mylist:
+        comp = lines.split(',')
+        x_coordinates.append(comp[len(comp) - 4])
+        y_coordinates.append(comp[len(comp) - 3])
+        angles.append(comp[len(comp) - 2])
+        components.append(comp[1])
+    row = len(components)
+    type_names = []
+    type_names = list(type_names)
+    type_names.append(components[0])    # add first component to type list.
+
+    for i in range(row):
+        is_new = 1
+        for k in range(len(type_names)):
+            if type_names[k] == components[i]:
+                is_new = 0
+        if is_new is 1:
+            type_names.append(components[i])
+    indx_list = []
+    for t in range(len(type_names)):
+        indx = []
+        for r in range(row):
+            if components[r] == type_names[t]:
+                indx.append(r)
+        indx_list.append(indx)
+
+    component_handle(type_names, indx_list, angles, x_coordinates, y_coordinates)
+
 def start():
 
     iterator = comports(include_links='s')
     print("Device(s) found at port(s):")
-    count = 1
+    count = 0
     for n, (port, desc, hwid) in enumerate(iterator):
+        count += 1
         print("%d: %s" % (count, port))
 
     while act_serial() == 0:
         print("Check your device path.")
-    read_gerber()
+
+    loc = input("Enter the centroid file path: ")
+    if ".htm" in loc:
+        read_gerber_htm(loc)
+    else:
+        read_gerber(loc)
 
 
 start()
