@@ -26,21 +26,6 @@ class State(Enum):  # To make the program easier to understand, some of the proc
     ANGLE_CORRECTION = 7
 
 
-def act_serial():
-    global s
-    serial_address = input("Enter connection port of the GRBL controller.\nIn format of 'COM+number': ")
-    baudrate = input("Enter Baudrate. Default is (115200). Do not change if not necessary.\n=> ")
-    try:
-        s = serial.Serial(serial_address, baudrate)  # connect to controller
-    except serial.serialutil.SerialException:
-        print("Connection failed.")
-        return 0
-
-    print("Connection established.")
-    s.write("\r\n\r\n".encode())  # Wake up grbl
-    time.sleep(2)  # A few seconds is necessary for grbl until it accepts commands.
-
-
 def send_gcode(gcode):
     s.flushInput()  # Flush startup text in serial input
     code = gcode.splitlines()  # Strip all EOL characters for streaming
@@ -316,8 +301,27 @@ def read_gerber(loc):
     component_handle(type_names, indx_list, angles, x_coordinates, y_coordinates)
 
 
-def start():
+def act_serial(port):
+    global s
+    select = input("Select device: ")
+    serial_address = port[int(select)-1]
+    baudrate = 115200
+    baud_change = input("Enter Baudrate. Default is (115200). Do you want to change?(y/n) : ")
+    if baud_change.lower() == 'y':
+        baudrate = input("New baudrate: ")
+    try:
+        s = serial.Serial(serial_address, baudrate)  # connect to controller
+    except serial.serialutil.SerialException:
+        print("Connection failed.")
+        return 0
 
+    print("Connection established.")
+    s.write("\r\n\r\n".encode())  # Wake up grbl
+    time.sleep(2)  # A few seconds is necessary for grbl until it accepts commands.
+
+
+def start():
+    ports = []
     iterator = comports(include_links='s')
     print("Device(s) found at port(s):")
     count = 0
@@ -328,8 +332,9 @@ def start():
         x = str(x)
         x = x.split('\\r\\r\\n')
         print("%d: %s" % (count, x[1]))
+        ports.append(port)
 
-    while act_serial() == 0:
+    while act_serial(ports) == 0:
         print("Check your device path.")
 
     loc = input("Enter the centroid file path: ")
