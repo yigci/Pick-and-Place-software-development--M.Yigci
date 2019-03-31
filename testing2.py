@@ -6,6 +6,7 @@ import time
 from enum import Enum
 import serial
 from serial.tools.list_ports import comports
+import subprocess
 
 
 s = None
@@ -178,6 +179,9 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
             position_x = (float(x_coordinates[locations[k]]) / 100)
             position_y = (float(y_coordinates[locations[k]]) / 100)
             comp_angle = float(angle[locations[k]])
+            if comp_angle == 270:
+                comp_angle = -90
+
             gcode_generate(None, None, None, State.GO_TO_FEEDER)  # GO TO FEEDER POSITION
             gcode_generate(None, None, None, State.PICK_UP)  # PICKUP THE COMPONENT
             gcode_generate(None, None, None, State.GO_TO_CAMERA)  # GO TO CAMERA POSITION
@@ -196,7 +200,7 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
                 current_angle = float(data[2])
                 if (220 < center_x < 260) and (220 < center_y < 260):
                     is_center_ready = 1
-                if abs(current_angle-comp_angle) < 1:
+                if abs(current_angle) < 1 or 44 < abs(current_angle) < 46:
                     is_angle_ready = 1
 
                 pixel2mm = 15
@@ -272,7 +276,7 @@ def read_gerber(loc):
     count = 0
     foundat = 0
 
-    x_coordinates, y_coordinates, angles, components, mylist =[], [], [], [], []
+    x_coordinates, y_coordinates, angles, components, mylist = [], [], [], [], []
 
     for lines in f.readlines():
         mylist.append(lines)
@@ -311,6 +315,7 @@ def read_gerber(loc):
 
     component_handle(type_names, indx_list, angles, x_coordinates, y_coordinates)
 
+
 def start():
 
     iterator = comports(include_links='s')
@@ -318,7 +323,11 @@ def start():
     count = 0
     for n, (port, desc, hwid) in enumerate(iterator):
         count += 1
-        print("%d: %s" % (count, port))
+        string = 'wmic path CIM_LogicalDevice where \"Caption like \'%'+port+"%\'\" get caption"
+        x = subprocess.check_output(string, shell=True)
+        x = str(x)
+        x = x.split('\\r\\r\\n')
+        print("%d: %s" % (count, x[1]))
 
     while act_serial() == 0:
         print("Check your device path.")
