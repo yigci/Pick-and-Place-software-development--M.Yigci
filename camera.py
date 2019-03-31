@@ -1,4 +1,4 @@
-# import the necessary packages
+# Visual test.
 import numpy as np
 import imutils
 import cv2

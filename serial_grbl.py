@@ -1,3 +1,4 @@
+# Test file for serial communication
 import serial
 import time
 
