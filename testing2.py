@@ -12,7 +12,7 @@ import subprocess
 s = None
 CAMERA_POSITION = [10, 0]  # Predefined constants.
 FEEDER_POSITION = [50, 0]
-DEFINED_CENTER = [240, 240]
+DEFINED_CENTER = []
 
 
 class State(Enum):  # To make the program easier to understand, some of the processes assigned to numbers.
@@ -77,9 +77,11 @@ def gcode_generate(x, y, angle, statement):
     elif statement == State.PLACEMENT_LOC:
         gcode = "X%s Y%s \n" % (str(x), str(y))
         send_gcode(gcode)
+
     elif statement == State.SET_RELATIVE_OFFSET:
         gcode = "G10 L20 P1 X%s Y%s" % (str(x), str(y))
         send_gcode(gcode)
+
     elif statement == State.ANGLE_CORRECTION:
         gcode = "A%s" % str(angle)
         send_gcode(gcode)
@@ -88,14 +90,17 @@ def gcode_generate(x, y, angle, statement):
 def visual():
     cv2.namedWindow("Output")
     cap = cv2.VideoCapture(0)
+    ret, image = cap.read()
+    cv2.waitKey(1)
+    res_y = int(len(image[0]))
+    res_x = int(len(image))
+    starty = int((res_y - res_x) / 2)
+    origin = int(res_x / 2)
+
     while 1:
         ret, image = cap.read()
         cv2.waitKey(1)
-        res_y = int(len(image[0]))
-        res_x = int(len(image))
-        starty = int((res_y - res_x) / 2)
         image = image[:, starty:starty + res_x]
-        origin = int(res_x / 2)
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         gray = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 16)
         edged = cv2.Canny(gray, 50, 100)
@@ -154,8 +159,6 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
             print("Error. Default settings will be used.")
         send_gcode(initial)
 
-    # print("Angle of the component is not included to the program yet.(%f)", angle[0])
-    # angle adjustments should be included to the program. Either servo or step motor can be used.
     for i in range(len(feeder)):
         locations = indx[i]
         print("Picking: %s" % feeder[i])
@@ -189,8 +192,8 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
                     is_angle_ready = 1
 
                 pixel2mm = 15
-                # this value must be calculated during laboratory tests. It is the definition of the ratio
-                # of the conversion between pixel values and milimeter. It depends on the Z-axis height.
+                # this value must be calculated during laboratory tests. It is the definition
+                # of the pixel to milimeter conversion ratio. It depends on the Z-axis height.
                 if is_center_ready is not 1:
                     correction_x = (DEFINED_CENTER[0] - float(center_x)) / pixel2mm
                     correction_y = (DEFINED_CENTER[1] - float(center_y)) / pixel2mm
@@ -317,7 +320,7 @@ def act_serial(port):
 
     print("Connection established.")
     s.write("\r\n\r\n".encode())  # Wake up grbl
-    time.sleep(2)  # A few seconds is necessary for grbl until it accepts commands.
+    time.sleep(1)  # A few seconds is necessary for grbl until it accepts commands.
 
 
 def start():
