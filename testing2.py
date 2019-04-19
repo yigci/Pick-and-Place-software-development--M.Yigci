@@ -9,13 +9,13 @@ from serial.tools.list_ports import comports
 import subprocess
 
 
-s = None
-CAMERA_POSITION = [10, 0]  # Predefined constants.
+# s = None
+CAMERA_POSITION = [10, 10]  # Predefined constants.
 FEEDER_POSITION = [50, 0]
 DEFINED_CENTER = []
 
 
-class State(Enum):  # To make the program easier to understand, some of the processes assigned to numbers.
+class State(Enum):  # Enumeration of process states
     GO_TO_FEEDER = 0
     PICK_UP = 1
     PLACE = 2
@@ -24,29 +24,31 @@ class State(Enum):  # To make the program easier to understand, some of the proc
     PLACEMENT_LOC = 5
     SET_RELATIVE_OFFSET = 6  # This option changes machine's current position to given coordinates.(only x and y axis)
     ANGLE_CORRECTION = 7
+    FAILED = 8
 
 
 def send_gcode(gcode):
     s.flushInput()  # Flush startup text in serial input
     code = gcode.splitlines()  # Strip all EOL characters for streaming
 
+    while 1:
+        s.write(("?" + "\n").encode())
+        grbl_out = s.readline()  # Wait for grbl response with carriage return
+        ret = grbl_out.strip().decode()
+        time.sleep(0.1)
+        if 'Idle' in ret:
+            break
+        # infinite loop is to check if the system is idle or not. No GCode block will be sent to the GRBL until
+        # previous process finished. It is not completely necessary but is usefull to track current processes.
+
     for line in code:
 
-        # check = 1
         print('Sending: ' + line)
         s.write((line + "\n").encode())  # Send g-code block to grbl
         grbl_out = s.readline()  # Wait for grbl response with carriage return
         ret = grbl_out.strip().decode()
         if ret is not 'Sent':
             print(ret)
-
-        # while check is 1:
-        #     s.write(("?" + "\n").encode())
-        #     grbl_out = s.readline()  # Wait for grbl response with carriage return
-        #     ret = grbl_out.strip().decode()
-        #     time.sleep(0.1)
-        #     if 'Idle' in ret:
-        #         check = 0
 
     time.sleep(1)
     print("Transmission finished.")
@@ -121,9 +123,9 @@ def visual():
             data = []
             if 6500 < cv2.contourArea(cnt) < 21000:
                 rect = cv2.minAreaRect(cnt)
-                #               box = cv2.boxPoints(rect)
-                #               box = np.int0(box)
-                #               cv2.drawContours(image, [box], 0, (0, 0, 255), 2)
+                # box = cv2.boxPoints(rect)
+                # box = np.int0(box)
+                # cv2.drawContours(image, [box], 0, (0, 0, 255), 2)
                 rect = list(rect)
                 angle = list(np.float_(rect[2:3]))
                 angle = float(angle[0])
@@ -200,6 +202,11 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
                     gcode_generate(correction_x, correction_y, 0, State.CAMERA_ADJUST)
                     change_x += correction_x
                     change_y += correction_y
+                    # if change_x < -10 or change_y < -10:
+                    #    print("Correction failed. Out of workspace limits!")
+                    # what to do now?
+                    # Correction can not be exceed workspace limits. It must be checked in each correction cycle
+
                 if is_angle_ready is not 1:
                     correction_angle = comp_angle - current_angle
                     gcode_generate(None, None, correction_angle, State.ANGLE_CORRECTION)  # angle correction
@@ -211,11 +218,9 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
 
 
 def read_gerber_htm(loc):
-    # loc = input("Enter full path of gerber file: ")
     offset_x, offset_y = input("Enter board reference point:").split()
     gcode_generate(offset_x, offset_y, 0, State.SET_RELATIVE_OFFSET)
     gcode_generate(0, 0, 0, State.PLACEMENT_LOC)  # nothing to place. go to reference point.(WPos = '0,0,0')
-    # loc = "C:/Users/muham/Desktop/XY-coordinates.htm"
     table = pd.read_html(loc)
     table = table[0]
     dimension = np.shape(table)
@@ -231,7 +236,8 @@ def read_gerber_htm(loc):
     del x_coordinates[0]
     del y_coordinates[0]
     del components[0]
-    del angles[0]   # angles read from gerber file
+    del angles[0]
+    # First elements of the lists contain the data title. Delete titles of the data from the list.
     type_names = []
     type_names = list(type_names)
     type_names.append(components[0])    # add first component to type list.
@@ -251,7 +257,13 @@ def read_gerber_htm(loc):
             if components[r] == type_names[t]:
                 indx.append(r)
         indx_list.append(indx)
-
+    print("Depending on the location of the reference point of the board, X and Y axis may be interchanged.\n"
+          "Is coordinate system suitable for the board?")
+    xy_rotation = input("Y/N")
+    if xy_rotation.lower() is "n":
+        temp = x_coordinates
+        x_coordinates = y_coordinates
+        y_coordinates = temp
     component_handle(type_names, indx_list, angles, x_coordinates, y_coordinates)
 
 

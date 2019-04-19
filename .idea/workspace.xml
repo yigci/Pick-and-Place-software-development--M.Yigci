@@ -38,8 +38,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/camera.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <caret column="14" selection-start-column="14" selection-end-column="14" />
+            <state relative-caret-position="-17">
+              <caret line="16" column="31" lean-forward="true" selection-start-line="16" selection-start-column="31" selection-end-line="16" selection-end-column="31" />
             </state>
           </provider>
         </entry>
@@ -70,28 +70,29 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/testing2.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1">
-              <caret selection-end-line="9" />
+            <state relative-caret-position="2499">
+              <caret line="259" column="73" selection-start-line="259" selection-start-column="73" selection-end-line="259" selection-end-column="73" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
                 <element signature="e#690#1483#0" />
-                <element signature="e#5070#8237#0" />
-                <element signature="e#8270#9758#0" />
+                <element signature="e#1535#2643#0" />
+                <element signature="e#2664#4990#0" />
                 <element signature="e#9788#11288#0" />
+                <element signature="e#11317#11955#0" />
                 <element signature="e#11975#12641#0" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/random_test.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="17">
-              <caret line="15" column="12" selection-start-line="15" selection-start-column="12" selection-end-line="15" selection-end-column="12" />
+            <state relative-caret-position="204">
+              <caret line="12" selection-start-line="12" selection-end-line="14" selection-end-column="24" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -163,8 +164,8 @@
         <option value="$PROJECT_DIR$/serial_grbl.py" />
         <option value="$PROJECT_DIR$/table_read.py" />
         <option value="$PROJECT_DIR$/camera.py" />
-        <option value="$PROJECT_DIR$/testing2.py" />
         <option value="$PROJECT_DIR$/random_test.py" />
+        <option value="$PROJECT_DIR$/testing2.py" />
       </list>
     </option>
   </component>
@@ -536,7 +537,14 @@
       <option name="project" value="LOCAL" />
       <updated>1554031250991</updated>
     </task>
-    <option name="localTasksCounter" value="23" />
+    <task id="LOCAL-00023" summary="Camera speed improvement">
+      <created>1555608185534</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1555608185534</updated>
+    </task>
+    <option name="localTasksCounter" value="24" />
     <servers />
   </component>
   <component name="TodoView">
@@ -638,7 +646,8 @@
     <MESSAGE value="Test files. Not actively used." />
     <MESSAGE value="Device select section added.&#10;Baudrate is 115200 by default." />
     <MESSAGE value="Centroid file example" />
-    <option name="LAST_COMMIT_MESSAGE" value="Centroid file example" />
+    <MESSAGE value="Camera speed improvement" />
+    <option name="LAST_COMMIT_MESSAGE" value="Camera speed improvement" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$USER_HOME$/Desktop/Yeni klasör/learning/combine.py" />
@@ -690,13 +699,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/camera.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret column="14" selection-start-column="14" selection-end-column="14" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/pickandplace.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="119">
@@ -719,27 +721,35 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/testing2.py">
+    <entry file="file://$PROJECT_DIR$/camera.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1">
-          <caret selection-end-line="9" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-            <element signature="e#690#1483#0" />
-            <element signature="e#5070#8237#0" />
-            <element signature="e#8270#9758#0" />
-            <element signature="e#9788#11288#0" />
-            <element signature="e#11975#12641#0" />
-          </folding>
+        <state relative-caret-position="-17">
+          <caret line="16" column="31" lean-forward="true" selection-start-line="16" selection-start-column="31" selection-end-line="16" selection-end-column="31" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/random_test.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="17">
-          <caret line="15" column="12" selection-start-line="15" selection-start-column="12" selection-end-line="15" selection-end-column="12" />
+        <state relative-caret-position="204">
+          <caret line="12" selection-start-line="12" selection-end-line="14" selection-end-column="24" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/testing2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2499">
+          <caret line="259" column="73" selection-start-line="259" selection-start-column="73" selection-end-line="259" selection-end-column="73" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+            <element signature="e#690#1483#0" />
+            <element signature="e#1535#2643#0" />
+            <element signature="e#2664#4990#0" />
+            <element signature="e#9788#11288#0" />
+            <element signature="e#11317#11955#0" />
+            <element signature="e#11975#12641#0" />
           </folding>
         </state>
       </provider>
