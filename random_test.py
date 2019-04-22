@@ -1,19 +1,28 @@
-import cv2
-import imutils
 import numpy as np
+import imutils
+import cv2
+import pandas as pd
+import time
+from enum import Enum
+import serial
+from serial.tools.list_ports import comports
+import subprocess
 
 
 def visual():
+
     cv2.namedWindow("Output")
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(1)
+    ret, image = cap.read()
+    cv2.waitKey(1)
+    res_y = int(len(image[0]))
+    res_x = int(len(image))
+    starty = int((res_y - res_x) / 2)
+    origin = int(res_x / 2)
     while 1:
         ret, image = cap.read()
         cv2.waitKey(1)
-        res_y = int(len(image[0]))
-        res_x = int(len(image))
-        starty = int((res_y - res_x) / 2)
         image = image[:, starty:starty + res_x]
-        origin = int(res_x / 2)
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         gray = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 16)
         edged = cv2.Canny(gray, 50, 100)
@@ -25,7 +34,7 @@ def visual():
         for cnt in cnts:
             if 7000 < cv2.contourArea(cnt) < 20000:
                 perimeter = cv2.arcLength(cnt, True)
-                approx = cv2.approxPolyDP(cnt, 0.12 * perimeter, True)
+                approx = cv2.approxPolyDP(cnt, 0.08 * perimeter, True)
                 if len(approx) == 4:
                     mycnts.append(cnt)
 
@@ -35,12 +44,8 @@ def visual():
             if 6500 < cv2.contourArea(cnt) < 21000:
                 rect = cv2.minAreaRect(cnt)
                 box = cv2.boxPoints(rect)
-                box = list(box[1])
-                print(box[1])
-
-                #               box = cv2.boxPoints(rect)
-                #               box = np.int0(box)
-                #               cv2.drawContours(image, [box], 0, (0, 0, 255), 2)
+                box = np.int0(box)
+                cv2.drawContours(image, [box], 0, (0, 0, 255), 2)
                 rect = list(rect)
                 angle = list(np.float_(rect[2:3]))
                 angle = float(angle[0])
@@ -56,12 +61,11 @@ def visual():
                 data.append((coor[1]))
                 data.append(angle)
                 cv2.drawContours(image, mycnts, -1, (0, 255, 0), 1)
-                print(data[2])
+                # return data
 
         image[origin, origin - 5:origin + 5] = (255, 0, 0)
         image[origin - 5:origin + 5, origin] = (255, 0, 0)
         cv2.imshow("Output", image)
-
 
 
 visual()

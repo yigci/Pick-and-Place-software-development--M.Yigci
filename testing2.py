@@ -10,12 +10,19 @@ import subprocess
 
 
 # s = None
-CAMERA_POSITION = [10, 10]  # Predefined constants.
-FEEDER_POSITION = [50, 0]
+CAMERA_POSITION = [60, 0]  # Predefined constants.
+FEEDER_POSITION = [20, 10]
 DEFINED_CENTER = []
 
 
-class State(Enum):  # Enumeration of process states
+# class Position(Enum):
+#     CAMERA_POSITION = [10, 10]
+#     FEEDER_POSITION = [[30, 10], [40, 10], [50, 10], [60, 10], [70, 10]]
+# for multiple feeder configuration. To make it easier to select feeder.
+
+
+class State(Enum):  # States of the process
+
     GO_TO_FEEDER = 0
     PICK_UP = 1
     PLACE = 2
@@ -24,10 +31,11 @@ class State(Enum):  # Enumeration of process states
     PLACEMENT_LOC = 5
     SET_RELATIVE_OFFSET = 6  # This option changes machine's current position to given coordinates.(only x and y axis)
     ANGLE_CORRECTION = 7
-    FAILED = 8
+    FAIL = 8
 
 
 def send_gcode(gcode):
+
     s.flushInput()  # Flush startup text in serial input
     code = gcode.splitlines()  # Strip all EOL characters for streaming
 
@@ -35,7 +43,7 @@ def send_gcode(gcode):
         s.write(("?" + "\n").encode())
         grbl_out = s.readline()  # Wait for grbl response with carriage return
         ret = grbl_out.strip().decode()
-        time.sleep(0.1)
+        # time.sleep(0.01)
         if 'Idle' in ret:
             break
         # infinite loop is to check if the system is idle or not. No GCode block will be sent to the GRBL until
@@ -47,10 +55,10 @@ def send_gcode(gcode):
         s.write((line + "\n").encode())  # Send g-code block to grbl
         grbl_out = s.readline()  # Wait for grbl response with carriage return
         ret = grbl_out.strip().decode()
-        if ret is not 'Sent':
+        if 'Sent' in ret:
             print(ret)
 
-    time.sleep(1)
+    time.sleep(0.1)
     print("Transmission finished.")
 
 
@@ -61,12 +69,15 @@ def gcode_generate(x, y, angle, statement):
         send_gcode(gcode)  # Send gcode to the controller.
 
     elif statement == State.PICK_UP:  # pick up
-        gcode = "Z50 \nM08 \nZ0 \n"
+        gcode = "Z50 \nM08 \n"
         send_gcode(gcode)
+        time.sleep(0.1)     # wait for a while before go up. The aim is to be sure that component is picked up...
+        gcode = "Z0 \n"     # ..Otherwise movement would be too fast(no time between activation of vacuum and Z axis..
+        send_gcode(gcode)   # .. movement. It may cause problem in picking up sequence.
 
     elif statement == State.PLACE:  # place
-        gcode = "M9 \nZ50 \nM10 \nZ0 \n"
-        send_gcode(gcode)
+        gcode = "Z50 \nM10 \nZ49 \nZ50 \n Z0"     # Component may not be dropped from the nozzle. Small movements may..
+        send_gcode(gcode)                         # .. solve this problem.
 
     elif statement == State.GO_TO_CAMERA:  # GO TO CAMERA
         gcode = "X%s Y%s \nM7\n" % (str(CAMERA_POSITION[0]), str(CAMERA_POSITION[1]))
@@ -90,18 +101,20 @@ def gcode_generate(x, y, angle, statement):
 
 
 def visual():
+
     cv2.namedWindow("Output")
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(1)
     ret, image = cap.read()
     cv2.waitKey(1)
     res_y = int(len(image[0]))
     res_x = int(len(image))
     starty = int((res_y - res_x) / 2)
     origin = int(res_x / 2)
-
+    DEFINED_CENTER.append(origin)
+    DEFINED_CENTER.append(origin)
     while 1:
         ret, image = cap.read()
-        cv2.waitKey(1)
+        cv2.waitKey(0.5)
         image = image[:, starty:starty + res_x]
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         gray = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 16)
@@ -114,7 +127,7 @@ def visual():
         for cnt in cnts:
             if 7000 < cv2.contourArea(cnt) < 20000:
                 perimeter = cv2.arcLength(cnt, True)
-                approx = cv2.approxPolyDP(cnt, 0.12 * perimeter, True)
+                approx = cv2.approxPolyDP(cnt, 0.11 * perimeter, True)
                 if len(approx) == 4:
                     mycnts.append(cnt)
 
@@ -131,16 +144,16 @@ def visual():
                 angle = float(angle[0])
                 coor = list(np.float_(rect[0:1]))
                 coor = coor[0]
-                cx = int(coor[0])
-                cy = int(coor[1])
-                cv2.circle(image, (cx, cy), 1, (0, 0, 255), -1)
-                cv2.putText(image, "center: %f-%f  Angle: %f" % (coor[0], coor[1], angle), (15, 15),
-                            cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255), 1)
+                # cx = int(coor[0])
+                # cy = int(coor[1])
+                # cv2.circle(image, (cx, cy), 1, (0, 0, 255), -1)
+                # cv2.putText(image, "center: %f-%f  Angle: %f" % (coor[0], coor[1], angle), (15, 15),
+                #             cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255), 1)
 
                 data.append((coor[0]))
                 data.append((coor[1]))
                 data.append(angle)
-                cv2.drawContours(image, mycnts, -1, (0, 255, 0), 1)
+                # cv2.drawContours(image, mycnts, -1, (0, 255, 0), 1)
                 return data
 
         image[origin, origin - 5:origin + 5] = (255, 0, 0)
@@ -149,6 +162,7 @@ def visual():
 
 
 def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
+
     print("Do you want to load user defined GCode settings? (y/n)\n=> ")
     choice = input()
     choice.lower()
@@ -173,6 +187,7 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
                 comp_angle = -90
 
             gcode_generate(None, None, None, State.GO_TO_FEEDER)  # GO TO FEEDER POSITION
+            # in multiple feeder configuration this statement changes. Each feeder has different position.
             gcode_generate(None, None, None, State.PICK_UP)  # PICKUP THE COMPONENT
             gcode_generate(None, None, None, State.GO_TO_CAMERA)  # GO TO CAMERA POSITION
             gcode_generate(None, None, comp_angle, State.ANGLE_CORRECTION)
@@ -202,15 +217,17 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
                     gcode_generate(correction_x, correction_y, 0, State.CAMERA_ADJUST)
                     change_x += correction_x
                     change_y += correction_y
-                    # if change_x < -10 or change_y < -10:
-                    #    print("Correction failed. Out of workspace limits!")
-                    # what to do now?
+                    if change_x < -10 or change_y < -10:
+                        print("Correction failed. Out of workspace limits!")
+                        return 0
                     # Correction can not be exceed workspace limits. It must be checked in each correction cycle
 
                 if is_angle_ready is not 1:
                     correction_angle = comp_angle - current_angle
                     gcode_generate(None, None, correction_angle, State.ANGLE_CORRECTION)  # angle correction
                 if is_center_ready and is_angle_ready:
+                    gcode = "M9 \n"     # turn off camera light
+                    send_gcode(gcode)
                     break
 
             gcode_generate(position_x + change_x, position_y + change_y, None, State.PLACEMENT_LOC)  # go placement loc.
@@ -218,6 +235,7 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
 
 
 def read_gerber_htm(loc):
+
     offset_x, offset_y = input("Enter board reference point:").split()
     gcode_generate(offset_x, offset_y, 0, State.SET_RELATIVE_OFFSET)
     gcode_generate(0, 0, 0, State.PLACEMENT_LOC)  # nothing to place. go to reference point.(WPos = '0,0,0')
@@ -264,6 +282,9 @@ def read_gerber_htm(loc):
         temp = x_coordinates
         x_coordinates = y_coordinates
         y_coordinates = temp
+    # for i in range(len(type_names)):
+    #     component_handle(type_names[i], indx_list[i], angles, x_coordinates, y_coordinates)
+    # ---------multiple feeder configuration.--------
     component_handle(type_names, indx_list, angles, x_coordinates, y_coordinates)
 
 
@@ -312,11 +333,14 @@ def read_gerber(loc):
             if components[r] == type_names[t]:
                 indx.append(r)
         indx_list.append(indx)
-
+    # for i in range(len(type_names)):
+    #     component_handle(type_names[i], indx_list[i], angles, x_coordinates, y_coordinates)
+    # ---------multiple feeder configuration.--------
     component_handle(type_names, indx_list, angles, x_coordinates, y_coordinates)
 
 
 def act_serial(port):
+
     global s
     select = input("Select device: ")
     serial_address = port[int(select)-1]
@@ -327,8 +351,7 @@ def act_serial(port):
     try:
         s = serial.Serial(serial_address, baudrate)  # connect to controller
     except serial.serialutil.SerialException:
-        print("Connection failed.")
-        return 0
+        return State.FAIL
 
     print("Connection established.")
     s.write("\r\n\r\n".encode())  # Wake up grbl
@@ -336,21 +359,28 @@ def act_serial(port):
 
 
 def start():
-    ports = []
+
+    ports, dev_name = [], []
     iterator = comports(include_links='s')
-    print("Device(s) found at port(s):")
     count = 0
     for n, (port, desc, hwid) in enumerate(iterator):
         count += 1
         string = 'wmic path CIM_LogicalDevice where \"Caption like \'%'+port+"%\'\" get caption"
-        x = subprocess.check_output(string, shell=True)
-        x = str(x)
-        x = x.split('\\r\\r\\n')
-        print("%d: %s" % (count, x[1]))
+        cmd_out = subprocess.check_output(string, shell=True)
+        cmd_out = str(cmd_out)
+        cmd_out = cmd_out.split('\\r\\r\\n')
+        dev_name.append(cmd_out[1])
         ports.append(port)
 
-    while act_serial(ports) == 0:
-        print("Check your device path.")
+    if len(ports) is not 0:
+        print("Device(s) found at port(s):")
+        for i in range(count):
+            print("%d: %s" % (count , dev_name[i]))
+    else:
+        print("No devices found.")
+
+    while act_serial(ports) == State.FAIL:
+        print("Connection failed. Check your device path.")
 
     loc = input("Enter the centroid file path: ")
     if ".htm" in loc:
