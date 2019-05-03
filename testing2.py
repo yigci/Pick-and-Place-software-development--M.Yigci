@@ -10,10 +10,11 @@ import subprocess
 
 
 # s = None
-CAMERA_POSITION = [60, 0]  # Predefined constants.
-FEEDER_POSITION = [20, 10]
+# correction_active = None
+# global correction_active
+CAMERA_POSITION = []  # Predefined constants.
+FEEDER_POSITION = []
 DEFINED_CENTER = []
-
 
 # class Position(Enum):
 #     CAMERA_POSITION = [10, 10]
@@ -38,16 +39,17 @@ def send_gcode(gcode):
 
     s.flushInput()  # Flush startup text in serial input
     code = gcode.splitlines()  # Strip all EOL characters for streaming
+    # if correction_active:
+    # while 1:
+    #     s.write(("?" + "\n").encode())
+    #     grbl_out = s.readline()  # Wait for grbl response with carriage return
+    #     ret = grbl_out.strip().decode()
+    #     time.sleep(0.1)
+    #     if 'Idle' in ret:
+    #         break
 
-    while 1:
-        s.write(("?" + "\n").encode())
-        grbl_out = s.readline()  # Wait for grbl response with carriage return
-        ret = grbl_out.strip().decode()
-        # time.sleep(0.01)
-        if 'Idle' in ret:
-            break
-        # infinite loop is to check if the system is idle or not. No GCode block will be sent to the GRBL until
-        # previous process finished. It is not completely necessary but is usefull to track current processes.
+    # infinite loop is to check if the system is idle or not. No GCode block will be sent to the GRBL until
+    # previous process finished. It is not completely necessary but is usefull to track current processes.
 
     for line in code:
 
@@ -58,7 +60,7 @@ def send_gcode(gcode):
         if 'Sent' in ret:
             print(ret)
 
-    time.sleep(0.1)
+    time.sleep(0.2)
     print("Transmission finished.")
 
 
@@ -69,18 +71,18 @@ def gcode_generate(x, y, angle, statement):
         send_gcode(gcode)  # Send gcode to the controller.
 
     elif statement == State.PICK_UP:  # pick up
-        gcode = "Z50 \nM08 \n"
+        gcode = "Z50 \nM07 \n"
         send_gcode(gcode)
         time.sleep(0.1)     # wait for a while before go up. The aim is to be sure that component is picked up...
         gcode = "Z0 \n"     # ..Otherwise movement would be too fast(no time between activation of vacuum and Z axis..
         send_gcode(gcode)   # .. movement. It may cause problem in picking up sequence.
 
     elif statement == State.PLACE:  # place
-        gcode = "Z50 \nM10 \nZ49 \nZ50 \n Z0"     # Component may not be dropped from the nozzle. Small movements may..
+        gcode = "Z50 \nM9 \nZ49 \nZ50 \n Z0"     # Component may not be dropped from the nozzle. Small movements may..
         send_gcode(gcode)                         # .. solve this problem.
 
     elif statement == State.GO_TO_CAMERA:  # GO TO CAMERA
-        gcode = "X%s Y%s \nM7\n" % (str(CAMERA_POSITION[0]), str(CAMERA_POSITION[1]))
+        gcode = "X%s Y%s \nM8\n" % (str(CAMERA_POSITION[0]), str(CAMERA_POSITION[1]))
         send_gcode(gcode)
 
     elif statement == State.CAMERA_ADJUST:  # Camera position adjustments
@@ -92,7 +94,9 @@ def gcode_generate(x, y, angle, statement):
         send_gcode(gcode)
 
     elif statement == State.SET_RELATIVE_OFFSET:
-        gcode = "G10 L20 P1 X%s Y%s" % (str(x), str(y))
+        gcode = "X%s Y%s" % (str(x), str(y))
+        send_gcode(gcode)
+        gcode = "G10 L20 P1 X0 Y0"
         send_gcode(gcode)
 
     elif statement == State.ANGLE_CORRECTION:
@@ -114,7 +118,7 @@ def visual():
     DEFINED_CENTER.append(origin)
     while 1:
         ret, image = cap.read()
-        cv2.waitKey(0.5)
+        cv2.waitKey(1)
         image = image[:, starty:starty + res_x]
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         gray = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 16)
@@ -144,16 +148,16 @@ def visual():
                 angle = float(angle[0])
                 coor = list(np.float_(rect[0:1]))
                 coor = coor[0]
-                # cx = int(coor[0])
-                # cy = int(coor[1])
-                # cv2.circle(image, (cx, cy), 1, (0, 0, 255), -1)
-                # cv2.putText(image, "center: %f-%f  Angle: %f" % (coor[0], coor[1], angle), (15, 15),
-                #             cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255), 1)
+                cx = int(coor[0])
+                cy = int(coor[1])
+                cv2.circle(image, (cx, cy), 1, (0, 0, 255), -1)
+                cv2.putText(image, "center: %f-%f  Angle: %f" % (coor[0], coor[1], angle), (15, 15),
+                            cv2.FONT_HERSHEY_PLAIN, 1, (0, 255, 255), 1)
 
                 data.append((coor[0]))
                 data.append((coor[1]))
                 data.append(angle)
-                # cv2.drawContours(image, mycnts, -1, (0, 255, 0), 1)
+                cv2.drawContours(image, mycnts, -1, (0, 255, 0), 1)
                 return data
 
         image[origin, origin - 5:origin + 5] = (255, 0, 0)
@@ -203,7 +207,7 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
                 center_x = data[0]
                 center_y = data[1]
                 current_angle = float(data[2])
-                if (220 < center_x < 260) and (220 < center_y < 260):
+                if (238 < center_x < 242) and (238 < center_y < 242):
                     is_center_ready = 1
                 if abs(current_angle) < 1 or 44 < abs(current_angle) < 46:
                     is_angle_ready = 1
@@ -214,11 +218,14 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
                 if is_center_ready is not 1:
                     correction_x = (DEFINED_CENTER[0] - float(center_x)) / pixel2mm
                     correction_y = (DEFINED_CENTER[1] - float(center_y)) / pixel2mm
+                    global correction_active
+                    correction_active = 1
                     gcode_generate(correction_x, correction_y, 0, State.CAMERA_ADJUST)
+                    cv2.waitKey(100)
                     change_x += correction_x
                     change_y += correction_y
                     if change_x < -10 or change_y < -10:
-                        print("Correction failed. Out of workspace limits!")
+                        print("Workspace limits violation. Program terminated!")
                         return 0
                     # Correction can not be exceed workspace limits. It must be checked in each correction cycle
 
@@ -226,7 +233,7 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
                     correction_angle = comp_angle - current_angle
                     gcode_generate(None, None, correction_angle, State.ANGLE_CORRECTION)  # angle correction
                 if is_center_ready and is_angle_ready:
-                    gcode = "M9 \n"     # turn off camera light
+                    gcode = "M10 \n"     # turn off camera light
                     send_gcode(gcode)
                     break
 
@@ -237,6 +244,10 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
 def read_gerber_htm(loc):
 
     offset_x, offset_y = input("Enter board reference point:").split()
+    CAMERA_POSITION.append(60-int(offset_x))
+    CAMERA_POSITION.append(-int(offset_y))
+    FEEDER_POSITION.append(20-int(offset_x))
+    FEEDER_POSITION.append(10-int(offset_y))
     gcode_generate(offset_x, offset_y, 0, State.SET_RELATIVE_OFFSET)
     gcode_generate(0, 0, 0, State.PLACEMENT_LOC)  # nothing to place. go to reference point.(WPos = '0,0,0')
     table = pd.read_html(loc)
@@ -291,6 +302,10 @@ def read_gerber_htm(loc):
 def read_gerber(loc):
 
     offset_x, offset_y = input("Enter board reference point:").split()
+    CAMERA_POSITION.append(60-int(offset_x))
+    CAMERA_POSITION.append(-int(offset_y))
+    FEEDER_POSITION.append(20-int(offset_x))
+    FEEDER_POSITION.append(10-int(offset_y))
     gcode_generate(offset_x, offset_y, 0, State.SET_RELATIVE_OFFSET)
     gcode_generate(0, 0, 0, State.PLACEMENT_LOC)  # nothing to place. go to reference point.(WPos = '0,0,0')
     f = open(loc, "r")
@@ -375,7 +390,7 @@ def start():
     if len(ports) is not 0:
         print("Device(s) found at port(s):")
         for i in range(count):
-            print("%d: %s" % (count , dev_name[i]))
+            print("%d: %s" % (count, dev_name[i]))
     else:
         print("No devices found.")
 
