@@ -6,7 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="343865b9-dee6-45e3-bfaa-be2e6dad3b54" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/random_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/random_test.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/testing2.py" beforeDir="false" afterPath="$PROJECT_DIR$/testing2.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -73,15 +72,13 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/testing2.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-544">
-              <caret line="48" column="19" lean-forward="true" selection-start-line="48" selection-start-column="19" selection-end-line="48" selection-end-column="19" />
+            <state relative-caret-position="-1224">
+              <caret line="48" column="21" lean-forward="true" selection-start-line="48" selection-start-column="21" selection-end-line="48" selection-end-column="21" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
-                <element signature="e#1835#3389#0" />
-                <element signature="e#9360#11321#0" />
-                <element signature="e#11351#13037#0" />
-                <element signature="e#13067#13678#0" />
-                <element signature="e#13699#14594#0" />
+                <element signature="e#587#855#0" />
+                <element signature="e#9610#11749#0" />
+                <element signature="e#11779#13643#0" />
               </folding>
             </state>
           </provider>
@@ -90,8 +87,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/random_test.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="225">
-              <caret line="19" column="44" lean-forward="true" selection-start-line="19" selection-start-column="44" selection-end-line="19" selection-end-column="44" />
+            <state relative-caret-position="187">
+              <caret line="19" column="44" selection-start-line="19" selection-start-column="44" selection-end-line="19" selection-end-column="44" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -181,23 +178,23 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope">
-        <subPane subId="Scope 'Project Files'; set:Project Files; class com.intellij.psi.search.scope.ProjectFilesScope">
-          <expand>
-            <path>
-              <item name="Work-in-progress" type="3d21c010:ScopeViewTreeModel$ProjectNode" />
-              <item name="" type="442cc68d:ScopeViewTreeModel$RootNode" />
-            </path>
-          </expand>
-          <select />
-        </subPane>
-      </pane>
       <pane id="ProjectPane">
         <subPane>
           <expand>
             <path>
               <item name="Work-in-progress" type="b2602c69:ProjectViewProjectNode" />
               <item name="Work in progress" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+      <pane id="Scope">
+        <subPane subId="Scope 'Project Files'; set:Project Files; class com.intellij.psi.search.scope.ProjectFilesScope">
+          <expand>
+            <path>
+              <item name="Work-in-progress" type="3d21c010:ScopeViewTreeModel$ProjectNode" />
+              <item name="" type="442cc68d:ScopeViewTreeModel$RootNode" />
             </path>
           </expand>
           <select />
@@ -227,7 +224,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.random_test">
+  <component name="RunManager" selected="Python.testing2">
     <configuration name="camera" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="Work-in-progress" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -558,7 +555,14 @@
       <option name="project" value="LOCAL" />
       <updated>1555929718129</updated>
     </task>
-    <option name="localTasksCounter" value="26" />
+    <task id="LOCAL-00026" summary="minor updates">
+      <created>1556906509707</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1556906509707</updated>
+    </task>
+    <option name="localTasksCounter" value="27" />
     <servers />
   </component>
   <component name="TodoView">
@@ -574,12 +578,12 @@
     <frame x="-8" y="-8" width="1382" height="784" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.10491072" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.10491072" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Find" order="1" visible="true" weight="0.32872504" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.49627978" weight="0.29339477" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.32872504" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.49627978" visible="true" weight="0.29339477" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.39938557" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -663,7 +667,8 @@
     <MESSAGE value="Camera speed improvement" />
     <MESSAGE value="comments and possible new feature introduction" />
     <MESSAGE value="Laboratory test" />
-    <option name="LAST_COMMIT_MESSAGE" value="Laboratory test" />
+    <MESSAGE value="minor updates" />
+    <option name="LAST_COMMIT_MESSAGE" value="minor updates" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$USER_HOME$/Desktop/Yeni klasör/learning/combine.py" />
@@ -701,6 +706,9 @@
     <entry file="file://$PROJECT_DIR$/gcode.txt" />
     <entry file="file://$PROJECT_DIR$/file.txt" />
     <entry file="file://$PROJECT_DIR$/initial.txt" />
+    <entry file="file://$PROJECT_DIR$/asdasdd.jpg" />
+    <entry file="file://$PROJECT_DIR$/a1.jpg" />
+    <entry file="file://$PROJECT_DIR$/a2.jpg" />
     <entry file="file://$PROJECT_DIR$/serial_grbl.py">
       <provider selected="true" editor-type-id="text-editor">
         <state>
@@ -712,6 +720,13 @@
       <provider selected="true" editor-type-id="text-editor">
         <state>
           <caret column="32" selection-start-column="32" selection-end-column="32" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/camera.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="238">
+          <caret line="16" column="31" selection-start-line="16" selection-start-column="31" selection-end-line="16" selection-end-column="31" />
         </state>
       </provider>
     </entry>
@@ -737,26 +752,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/camera.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="238">
-          <caret line="16" column="31" selection-start-line="16" selection-start-column="31" selection-end-line="16" selection-end-column="31" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/asdasdd.jpg">
-      <provider selected="true" editor-type-id="images" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/a1.jpg">
-      <provider selected="true" editor-type-id="images" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/a2.jpg">
-      <provider selected="true" editor-type-id="images" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/random_test.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="225">
-          <caret line="19" column="44" lean-forward="true" selection-start-line="19" selection-start-column="44" selection-end-line="19" selection-end-column="44" />
+        <state relative-caret-position="187">
+          <caret line="19" column="44" selection-start-line="19" selection-start-column="44" selection-end-line="19" selection-end-column="44" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
           </folding>
@@ -765,15 +764,13 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/testing2.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-544">
-          <caret line="48" column="19" lean-forward="true" selection-start-line="48" selection-start-column="19" selection-end-line="48" selection-end-column="19" />
+        <state relative-caret-position="-1224">
+          <caret line="48" column="21" lean-forward="true" selection-start-line="48" selection-start-column="21" selection-end-line="48" selection-end-column="21" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
-            <element signature="e#1835#3389#0" />
-            <element signature="e#9360#11321#0" />
-            <element signature="e#11351#13037#0" />
-            <element signature="e#13067#13678#0" />
-            <element signature="e#13699#14594#0" />
+            <element signature="e#587#855#0" />
+            <element signature="e#9610#11749#0" />
+            <element signature="e#11779#13643#0" />
           </folding>
         </state>
       </provider>

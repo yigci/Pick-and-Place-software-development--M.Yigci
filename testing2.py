@@ -39,14 +39,14 @@ def send_gcode(gcode):
 
     s.flushInput()  # Flush startup text in serial input
     code = gcode.splitlines()  # Strip all EOL characters for streaming
-    # if correction_active:
-    # while 1:
-    #     s.write(("?" + "\n").encode())
-    #     grbl_out = s.readline()  # Wait for grbl response with carriage return
-    #     ret = grbl_out.strip().decode()
-    #     time.sleep(0.1)
-    #     if 'Idle' in ret:
-    #         break
+    if gcode is '?':
+        while 1:
+            s.write(("?" + "\n").encode())
+            grbl_out = s.readline()  # Wait for grbl response with carriage return
+            ret = grbl_out.strip().decode()
+            time.sleep(0.1)
+            if 'Idle' in ret:
+                break
 
     # infinite loop is to check if the system is idle or not. No GCode block will be sent to the GRBL until
     # previous process finished. It is not completely necessary but is usefull to track current processes.
@@ -58,6 +58,8 @@ def send_gcode(gcode):
         grbl_out = s.readline()  # Wait for grbl response with carriage return
         ret = grbl_out.strip().decode()
         if 'Sent' in ret:
+            print("Success.")
+        else:
             print(ret)
 
     time.sleep(0.2)
@@ -222,11 +224,6 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
                     correction_active = 1
                     gcode_generate(correction_x, correction_y, 0, State.CAMERA_ADJUST)
                     cv2.waitKey(100)
-                    change_x += correction_x
-                    change_y += correction_y
-                    if change_x < -10 or change_y < -10:
-                        print("Workspace limits violation. Program terminated!")
-                        return 0
                     # Correction can not be exceed workspace limits. It must be checked in each correction cycle
 
                 if is_angle_ready is not 1:
@@ -397,6 +394,11 @@ def start():
     while act_serial(ports) == State.FAIL:
         print("Connection failed. Check your device path.")
 
+    send_gcode("$x\n$H")    # trigger home cycle
+    print("Waiting for Home Cycle to finish.")
+    send_gcode("?")
+    gcode = "G10 L20 P1 X0 Y0 Z0"
+    send_gcode(gcode)
     loc = input("Enter the centroid file path: ")
     if ".htm" in loc:
         read_gerber_htm(loc)
