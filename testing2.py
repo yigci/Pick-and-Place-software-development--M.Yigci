@@ -9,9 +9,6 @@ from serial.tools.list_ports import comports
 import subprocess
 
 
-# s = None
-# correction_active = None
-# global correction_active
 CAMERA_POSITION = []  # Predefined constants.
 FEEDER_POSITION = []
 DEFINED_CENTER = []
@@ -33,6 +30,7 @@ class State(Enum):  # States of the process
     SET_RELATIVE_OFFSET = 6  # This option changes machine's current position to given coordinates.(only x and y axis)
     ANGLE_CORRECTION = 7
     FAIL = 8
+    HOME_CYCLE = 9
 
 
 def send_gcode(gcode):
@@ -103,6 +101,13 @@ def gcode_generate(x, y, angle, statement):
 
     elif statement == State.ANGLE_CORRECTION:
         gcode = "A%s" % str(angle)
+        send_gcode(gcode)
+
+    elif statement == State.HOME_CYCLE:
+        send_gcode("$x\n$H")  # trigger home cycle
+        print("Waiting for Home Cycle to finish.")
+        send_gcode("?")
+        gcode = "G10 L20 P1 X0 Y0 Z0"
         send_gcode(gcode)
 
 
@@ -360,6 +365,7 @@ def act_serial(port):
     baud_change = input("Enter Baudrate. Default is (115200). Do you want to change?(y/n) : ")
     if baud_change.lower() == 'y':
         baudrate = input("New baudrate: ")
+
     try:
         s = serial.Serial(serial_address, baudrate)  # connect to controller
     except serial.serialutil.SerialException:
@@ -394,11 +400,7 @@ def start():
     while act_serial(ports) == State.FAIL:
         print("Connection failed. Check your device path.")
 
-    send_gcode("$x\n$H")    # trigger home cycle
-    print("Waiting for Home Cycle to finish.")
-    send_gcode("?")
-    gcode = "G10 L20 P1 X0 Y0 Z0"
-    send_gcode(gcode)
+    gcode_generate(None, None, None, State.HOME_CYCLE)
     loc = input("Enter the centroid file path: ")
     if ".htm" in loc:
         read_gerber_htm(loc)
