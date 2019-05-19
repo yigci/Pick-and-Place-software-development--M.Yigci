@@ -62,8 +62,7 @@ def send_gcode(gcode):
 
     time.sleep(0.2)
     print("Transmission finished.")
-# aslfdjaskfjhakdjhfksjdhfkshdfksjhdfk
-#tsetsetset
+
 def gcode_generate(x, y, angle, statement):
 
     if statement == State.GO_TO_FEEDER:  # Move to feeder position
