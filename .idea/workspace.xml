@@ -6,7 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="343865b9-dee6-45e3-bfaa-be2e6dad3b54" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/random_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/random_test.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/testing2.py" beforeDir="false" afterPath="$PROJECT_DIR$/testing2.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -73,10 +72,14 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/testing2.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-4718">
-              <caret line="104" column="8" selection-start-line="104" selection-start-column="8" selection-end-line="104" selection-end-column="8" />
+            <state relative-caret-position="182">
+              <caret line="64" column="38" selection-start-line="64" selection-start-column="38" selection-end-line="64" selection-end-column="38" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
+                <element signature="e#9335#11474#0" />
+                <element signature="e#11504#13368#0" />
+                <element signature="e#13398#14010#0" />
+                <element signature="e#14031#15097#0" />
               </folding>
             </state>
           </provider>
@@ -125,9 +128,9 @@
   <component name="Git.Settings">
     <option name="PREVIOUS_COMMIT_AUTHORS">
       <list>
+        <option value="yigci &lt;35665116+yigci@users.noreply.github.com&gt;" />
         <option value="muhammet" />
         <option value="Muhammet yiğci" />
-        <option value="yigci &lt;35665116+yigci@users.noreply.github.com&gt;" />
       </list>
     </option>
     <option name="ROOT_SYNC" value="DONT_SYNC" />
@@ -564,7 +567,14 @@
       <option name="project" value="LOCAL" />
       <updated>1557957237456</updated>
     </task>
-    <option name="localTasksCounter" value="28" />
+    <task id="LOCAL-00028" summary="Home cycle update">
+      <created>1558262339654</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1558262339654</updated>
+    </task>
+    <option name="localTasksCounter" value="29" />
     <servers />
   </component>
   <component name="TodoView">
@@ -671,7 +681,8 @@
     <MESSAGE value="Laboratory test" />
     <MESSAGE value="minor updates" />
     <MESSAGE value="home cycle added" />
-    <option name="LAST_COMMIT_MESSAGE" value="home cycle added" />
+    <MESSAGE value="Home cycle update" />
+    <option name="LAST_COMMIT_MESSAGE" value="Home cycle update" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$USER_HOME$/Desktop/Yeni klasör/learning/combine.py" />
@@ -764,10 +775,14 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/testing2.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-4718">
-          <caret line="104" column="8" selection-start-line="104" selection-start-column="8" selection-end-line="104" selection-end-column="8" />
+        <state relative-caret-position="182">
+          <caret line="64" column="38" selection-start-line="64" selection-start-column="38" selection-end-line="64" selection-end-column="38" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
+            <element signature="e#9335#11474#0" />
+            <element signature="e#11504#13368#0" />
+            <element signature="e#13398#14010#0" />
+            <element signature="e#14031#15097#0" />
           </folding>
         </state>
       </provider>
