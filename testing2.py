@@ -10,9 +10,13 @@ import subprocess
 
 
 CAMERA_POSITION = []  # Predefined constants.
-FEEDER_POSITION = []
+FEEDER_POSITION = []  # Defined later
 DEFINED_CENTER = []
-
+morp_ker = None
+thresh_ker = None
+thresh_sub = None
+epsilon = 0
+begin = 0
 # class Position(Enum):
 #     CAMERA_POSITION = [10, 10]
 #     FEEDER_POSITION = [[30, 10], [40, 10], [50, 10], [60, 10], [70, 10]]
@@ -42,8 +46,8 @@ def send_gcode(gcode):
             s.write(("?" + "\n").encode())
             grbl_out = s.readline()  # Wait for grbl response with carriage return
             ret = grbl_out.strip().decode()
-            time.sleep(0.1)
             if 'Idle' in ret:
+                time.sleep(0.5)
                 break
 
     # infinite loop is to check if the system is idle or not. No GCode block will be sent to the GRBL until
@@ -63,6 +67,7 @@ def send_gcode(gcode):
     time.sleep(0.2)
     print("Transmission finished.")
 
+
 def gcode_generate(x, y, angle, statement):
 
     if statement == State.GO_TO_FEEDER:  # Move to feeder position
@@ -70,26 +75,28 @@ def gcode_generate(x, y, angle, statement):
         send_gcode(gcode)  # Send gcode to the controller.
 
     elif statement == State.PICK_UP:  # pick up
-        gcode = "Z50 \nM07 \n"
+        gcode = "Z75 \nM07 \n"
         send_gcode(gcode)
         time.sleep(0.1)     # wait for a while before go up. The aim is to be sure that component is picked up...
         gcode = "Z0 \n"     # ..Otherwise movement would be too fast(no time between activation of vacuum and Z axis..
         send_gcode(gcode)   # .. movement. It may cause problem in picking up sequence.
 
     elif statement == State.PLACE:  # place
-        gcode = "Z50 \nM9 \nZ49 \nZ50 \n Z0"     # Component may not be dropped from the nozzle. Small movements may..
+        gcode = "Z75 \nM9 \nZ70 \nZ70.5 \n Z0"     # Component may not be dropped from the nozzle. Small movements may..
         send_gcode(gcode)                         # .. solve this problem.
 
     elif statement == State.GO_TO_CAMERA:  # GO TO CAMERA
-        gcode = "X%s Y%s \nM8\n" % (str(CAMERA_POSITION[0]), str(CAMERA_POSITION[1]))
+        gcode = "X%s \nY%s \nM8\n" % (str(CAMERA_POSITION[0]), str(CAMERA_POSITION[1]))
         send_gcode(gcode)
 
     elif statement == State.CAMERA_ADJUST:  # Camera position adjustments
         gcode = "G91 \nX%s Y%s \nG90" % (str(x), str(y))
         send_gcode(gcode)
+        gcode = "?"
+        send_gcode(gcode)
 
     elif statement == State.PLACEMENT_LOC:
-        gcode = "X%s Y%s \n" % (str(x), str(y))
+        gcode = "X%s \nY%s \n" % (str(x), str(y))
         send_gcode(gcode)
 
     elif statement == State.SET_RELATIVE_OFFSET:
@@ -99,52 +106,73 @@ def gcode_generate(x, y, angle, statement):
         send_gcode(gcode)
 
     elif statement == State.ANGLE_CORRECTION:
-        gcode = "A%s" % str(angle)
+        gcode = "G91\n A%s \nG90" % str(angle)
+        send_gcode(gcode)
+        gcode = "?"
         send_gcode(gcode)
 
     elif statement == State.HOME_CYCLE:
         send_gcode("$x\n$H")  # trigger home cycle
         print("Waiting for Home Cycle to finish.")
-        send_gcode("?")
         gcode = "G10 L20 P1 X0 Y0 Z0"
         send_gcode(gcode)
 
 
 def visual():
 
-    cv2.namedWindow("Output")
-    cap = cv2.VideoCapture(1)
+    global begin
+    begin = time.time()
+    cap = cv2.VideoCapture(0)
     ret, image = cap.read()
     cv2.waitKey(1)
-    res_y = int(len(image[0]))
+    # res_y = int(len(image[0]))
     res_x = int(len(image))
-    starty = int((res_y - res_x) / 2)
+    # starty = int((res_y - res_x) / 2)
     origin = int(res_x / 2)
     DEFINED_CENTER.append(origin)
     DEFINED_CENTER.append(origin)
+    global morp_ker, thresh_ker, thresh_sub, epsilon
+
     while 1:
         ret, image = cap.read()
         cv2.waitKey(1)
-        image = image[:, starty:starty + res_x]
+        image = image[:, 0:480]
+        image = imutils.rotate(image, 90)
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        gray = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 16)
+        gray = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, thresh_ker, thresh_sub)
         edged = cv2.Canny(gray, 50, 100)
-        kernel = np.ones((9, 9), np.uint8)
+        kernel = np.ones((morp_ker, morp_ker), np.uint8)
         closed = cv2.morphologyEx(edged, cv2.MORPH_CLOSE, kernel)
         cnts = cv2.findContours(closed, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         cnts = imutils.grab_contours(cnts)
         mycnts = []
+        image[origin, origin - 5:origin + 5] = (255, 0, 0)
+        image[origin - 5:origin + 5, origin] = (255, 0, 0)
+        cv2.imshow("Out", image)
+        cv2.waitKey(5)
+        # print(thresh_sub, thresh_ker, morp_ker)
+        if len(cnts) == 0:
+            print("Warning!\nNo contour detected. Threshold level or morphological filter\nparameters must be changed.")
+            print("Enter Thresholding kernel size (Previous value is %d): " % thresh_ker)
+            thresh_ker = input()
+            print("Enter Threshold subtraction value (Previous value is %d): " % thresh_sub)
+            thresh_sub = input()
+            print("Enter Morphological Filter kernel size (Previous value is %d): " % morp_ker)
+            morp_ker = input()
+
         for cnt in cnts:
-            if 7000 < cv2.contourArea(cnt) < 20000:
+            if 20000 < cv2.contourArea(cnt) < 45000:
                 perimeter = cv2.arcLength(cnt, True)
-                approx = cv2.approxPolyDP(cnt, 0.11 * perimeter, True)
+                print(epsilon)
+                approx = cv2.approxPolyDP(cnt, epsilon * perimeter, True)
+                print(len(approx))
                 if len(approx) == 4:
                     mycnts.append(cnt)
 
         cv2.circle(image, (origin, origin), 1, (255, 255, 255), -1)
         for cnt in mycnts:
             data = []
-            if 6500 < cv2.contourArea(cnt) < 21000:
+            if 15000 < cv2.contourArea(cnt) < 50000:
                 rect = cv2.minAreaRect(cnt)
                 # box = cv2.boxPoints(rect)
                 # box = np.int0(box)
@@ -164,11 +192,26 @@ def visual():
                 data.append((coor[1]))
                 data.append(angle)
                 cv2.drawContours(image, mycnts, -1, (0, 255, 0), 1)
+                image[origin, origin - 5:origin + 5] = (255, 0, 0)
+                image[origin - 5:origin + 5, origin] = (255, 0, 0)
+                cv2.imshow("Output", image)
+                # cv2.waitKey()
                 return data
+        end = time.time()
+        elapsed = end-begin
+        if elapsed > 5:
+            new_epsilon = input("Center detection failed.\n Check camera output.")
+            check_position_status = input("Is component in the camera limits?(y/n)")
+            if check_position_status.lower() == "y":
+                print("Enter new Epsilon value(old value is %d:" % epsilon)
+                epsilon = float(new_epsilon)
+            else:
+                print("Make manual adjustments.\n")
+                x, y = input("Enter x-y values to make adjustment:").split()
+                gcode_generate(x, y, 0, State.CAMERA_ADJUST)
 
-        image[origin, origin - 5:origin + 5] = (255, 0, 0)
-        image[origin - 5:origin + 5, origin] = (255, 0, 0)
-        cv2.imshow("Output", image)
+            end, elapsed = 0, 0
+            begin = time.time()
 
 
 def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
@@ -180,7 +223,7 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
         initial = input("Enter initial settings path: ")
         send_gcode(initial)
     else:
-        initial = "G90"  # absolute distance mode
+        initial = "G00 G90"  # absolute distance mode
         if choice != "n":
             print("Error. Default settings will be used.")
         send_gcode(initial)
@@ -193,8 +236,8 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
             position_x = (float(x_coordinates[locations[k]]) / 100)
             position_y = (float(y_coordinates[locations[k]]) / 100)
             comp_angle = float(angle[locations[k]])
-            if comp_angle == 270:
-                comp_angle = -90
+            if comp_angle == 270 or comp_angle == -270:
+                comp_angle = 90
 
             gcode_generate(None, None, None, State.GO_TO_FEEDER)  # GO TO FEEDER POSITION
             # in multiple feeder configuration this statement changes. Each feeder has different position.
@@ -213,42 +256,56 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
                 center_x = data[0]
                 center_y = data[1]
                 current_angle = float(data[2])
+
                 if (238 < center_x < 242) and (238 < center_y < 242):
                     is_center_ready = 1
-                if abs(current_angle) < 1 or 44 < abs(current_angle) < 46:
+                if abs(current_angle) < 2 or 43 < abs(current_angle) < 47 or (90-abs(current_angle)) < 2:
                     is_angle_ready = 1
-
-                pixel2mm = 15
-                # this value must be calculated during laboratory tests. It is the definition
-                # of the pixel to milimeter conversion ratio. It depends on the Z-axis height.
-                if is_center_ready is not 1:
-                    correction_x = (DEFINED_CENTER[0] - float(center_x)) / pixel2mm
-                    correction_y = (DEFINED_CENTER[1] - float(center_y)) / pixel2mm
-                    global correction_active
-                    correction_active = 1
-                    gcode_generate(correction_x, correction_y, 0, State.CAMERA_ADJUST)
-                    cv2.waitKey(100)
-                    # Correction can not be exceed workspace limits. It must be checked in each correction cycle
-
+                pixel2mm = 12.3
+                # is_angle_ready = 1
                 if is_angle_ready is not 1:
-                    correction_angle = comp_angle - current_angle
+                    if current_angle < 0:
+                        if abs(current_angle < 45):
+                            correction_angle = -1*abs(current_angle)
+                        else:
+                            correction_angle = abs(current_angle)
+                    if current_angle > 0:
+                        if abs(current_angle > 45):
+                            correction_angle = 90-abs(current_angle)
+                        else:
+                            correction_angle = -1*abs(current_angle)
+
                     gcode_generate(None, None, correction_angle, State.ANGLE_CORRECTION)  # angle correction
+                    cv2.waitKey()
+                if is_angle_ready == 1:
+                    if is_center_ready is not 1:
+                        correction_x = (DEFINED_CENTER[0] - float(center_x)) / pixel2mm
+                        correction_y = (DEFINED_CENTER[1] - float(center_y)) / pixel2mm
+                        change_x += correction_y
+                        change_y += correction_x
+                        global correction_active
+                        correction_active = 1
+                        gcode_generate(correction_y, -1*correction_x, 0, State.CAMERA_ADJUST)
+                        time.sleep(0.5)
+
                 if is_center_ready and is_angle_ready:
                     gcode = "M10 \n"     # turn off camera light
                     send_gcode(gcode)
                     break
 
-            gcode_generate(position_x + change_x, position_y + change_y, None, State.PLACEMENT_LOC)  # go placement loc.
+            gcode_generate(position_x-change_x+30, position_y+change_y+30, None, State.PLACEMENT_LOC)  # go place. loc.
+            print(change_y)
+
             gcode_generate(None, None, None, State.PLACE)  # PLACE THE COMPONENT
 
 
 def read_gerber_htm(loc):
 
     offset_x, offset_y = input("Enter board reference point:").split()
-    CAMERA_POSITION.append(60-int(offset_x))
-    CAMERA_POSITION.append(-int(offset_y))
-    FEEDER_POSITION.append(20-int(offset_x))
-    FEEDER_POSITION.append(10-int(offset_y))
+    CAMERA_POSITION.append(133-int(offset_x))
+    CAMERA_POSITION.append(27-int(offset_y))
+    FEEDER_POSITION.append(46-int(offset_x))
+    FEEDER_POSITION.append(16-int(offset_y))
     gcode_generate(offset_x, offset_y, 0, State.SET_RELATIVE_OFFSET)
     gcode_generate(0, 0, 0, State.PLACEMENT_LOC)  # nothing to place. go to reference point.(WPos = '0,0,0')
     table = pd.read_html(loc)
@@ -303,10 +360,10 @@ def read_gerber_htm(loc):
 def read_gerber(loc):
 
     offset_x, offset_y = input("Enter board reference point:").split()
-    CAMERA_POSITION.append(60-int(offset_x))
-    CAMERA_POSITION.append(-int(offset_y))
-    FEEDER_POSITION.append(20-int(offset_x))
-    FEEDER_POSITION.append(10-int(offset_y))
+    CAMERA_POSITION.append(133-int(offset_x))
+    CAMERA_POSITION.append(27-int(offset_y))
+    FEEDER_POSITION.append(46-int(offset_x))
+    FEEDER_POSITION.append(16-int(offset_y))
     gcode_generate(offset_x, offset_y, 0, State.SET_RELATIVE_OFFSET)
     gcode_generate(0, 0, 0, State.PLACEMENT_LOC)  # nothing to place. go to reference point.(WPos = '0,0,0')
     f = open(loc, "r")
@@ -377,6 +434,11 @@ def act_serial(port):
 
 def start():
 
+    global morp_ker, thresh_ker, thresh_sub, epsilon
+    morp_ker = 15
+    thresh_ker = 11
+    thresh_sub = 35
+    epsilon = 0.12
     ports, dev_name = [], []
     iterator = comports(include_links='s')
     count = 0

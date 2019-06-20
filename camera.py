@@ -15,7 +15,11 @@ def visual():
     # urllib.request.urlopen(address)
     while 1:
         ret, image = cap.read()
-        cv2.waitKey(1)
+            #cv2.imread("C:/Users/muham/Dropbox/Final Year Project/+Project/images/img3.jpg")
+        cv2.imshow("original", image)
+        rotated = imutils.rotate(image, 90)
+        cv2.imshow("rotated", rotated)
+        cv2.waitKey()
         res_y = int(len(image[0]))
         res_x = int(len(image))
         starty = int((res_y-res_x)/2)
@@ -26,7 +30,7 @@ def visual():
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         # gray = cv2.GaussianBlur(gray, (3, 3), 40)
         gray = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 16)
-        cv2.imshow("threshold", gray)
+        # cv2.imshow("threshold", gray)
         edged = cv2.Canny(gray, 50, 100)
         kernel = np.ones((5, 5), np.uint8)
 
@@ -35,16 +39,16 @@ def visual():
         cnts = imutils.grab_contours(cnts)
         mycnts = []
         for cnt in cnts:
-            if 1000 < cv2.contourArea(cnt) < 20000:
+            if 1000 < cv2.contourArea(cnt) < 200000:
                 perimeter = cv2.arcLength(cnt, True)
                 approx = cv2.approxPolyDP(cnt, 0.12 * perimeter, True)
                 if len(approx) == 4:
                     mycnts.append(cnt)
-        print(type(mycnts))
+      #  print(type(mycnts))
         cv2.circle(image, (origin, origin), 1, (255, 255, 255), -1)
         for cnt in mycnts:
             data = []
-            if 1500 < cv2.contourArea(cnt) < 21000:
+            if 1500 < cv2.contourArea(cnt) < 210000:
                 rect = cv2.minAreaRect(cnt)
                 box = cv2.boxPoints(rect)
                 box = np.int0(box)
@@ -66,6 +70,6 @@ def visual():
                 cv2.drawContours(image, mycnts, -1, (0, 255, 0), 1)
                 # cv2.destroyAllWindows()
                 # return data
-        cv2.imshow("Output", image)
+                cv2.imshow("Output", image)
 
 visual()
