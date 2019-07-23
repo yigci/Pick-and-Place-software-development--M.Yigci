@@ -17,6 +17,7 @@ thresh_ker = None
 thresh_sub = None
 epsilon = 0
 begin = 0
+camera = 0
 # class Position(Enum):
 #     CAMERA_POSITION = [10, 10]
 #     FEEDER_POSITION = [[30, 10], [40, 10], [50, 10], [60, 10], [70, 10]]
@@ -122,7 +123,7 @@ def visual():
 
     global begin
     begin = time.time()
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(int(camera))
     ret, image = cap.read()
     cv2.waitKey(1)
     # res_y = int(len(image[0]))
@@ -174,9 +175,9 @@ def visual():
             data = []
             if 15000 < cv2.contourArea(cnt) < 50000:
                 rect = cv2.minAreaRect(cnt)
-                # box = cv2.boxPoints(rect)
-                # box = np.int0(box)
-                # cv2.drawContours(image, [box], 0, (0, 0, 255), 2)
+                box = cv2.boxPoints(rect)
+                box = np.int0(box)
+                cv2.drawContours(image, [box], 0, (0, 0, 255), 2)
                 rect = list(rect)
                 angle = list(np.float_(rect[2:3]))
                 angle = float(angle[0])
@@ -195,15 +196,17 @@ def visual():
                 image[origin, origin - 5:origin + 5] = (255, 0, 0)
                 image[origin - 5:origin + 5, origin] = (255, 0, 0)
                 cv2.imshow("Output", image)
-                # cv2.waitKey()
+                cv2.waitKey(5)
+               # cv2.waitKey()
                 return data
         end = time.time()
         elapsed = end-begin
         if elapsed > 5:
-            new_epsilon = input("Center detection failed.\n Check camera output.")
+            print("Center detection failed.\n Check camera output.")
             check_position_status = input("Is component in the camera limits?(y/n)")
             if check_position_status.lower() == "y":
                 print("Enter new Epsilon value(old value is %d:" % epsilon)
+                new_epsilon = 0
                 epsilon = float(new_epsilon)
             else:
                 print("Make manual adjustments.\n")
@@ -268,7 +271,7 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
                         if abs(current_angle < 45):
                             correction_angle = -1*abs(current_angle)
                         else:
-                            correction_angle = abs(current_angle)
+                            correction_angle = 90-abs(current_angle)
                     if current_angle > 0:
                         if abs(current_angle > 45):
                             correction_angle = 90-abs(current_angle)
@@ -276,7 +279,7 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
                             correction_angle = -1*abs(current_angle)
 
                     gcode_generate(None, None, correction_angle, State.ANGLE_CORRECTION)  # angle correction
-                    cv2.waitKey()
+                    # cv2.waitKey()
                 if is_angle_ready == 1:
                     if is_center_ready is not 1:
                         correction_x = (DEFINED_CENTER[0] - float(center_x)) / pixel2mm
@@ -293,16 +296,19 @@ def component_handle(feeder, indx, angle, x_coordinates, y_coordinates):
                     send_gcode(gcode)
                     break
 
-            gcode_generate(position_x-change_x+30, position_y+change_y+30, None, State.PLACEMENT_LOC)  # go place. loc.
+            gcode_generate(position_x-change_x, position_y+change_y, None, State.PLACEMENT_LOC)  # go place. loc.
             print(change_y)
 
             gcode_generate(None, None, None, State.PLACE)  # PLACE THE COMPONENT
+            gcode = "A0"
+            send_gcode(gcode)
+            cv2.waitKey()
 
 
 def read_gerber_htm(loc):
 
     offset_x, offset_y = input("Enter board reference point:").split()
-    CAMERA_POSITION.append(133-int(offset_x))
+    CAMERA_POSITION.append(131-int(offset_x))
     CAMERA_POSITION.append(27-int(offset_y))
     FEEDER_POSITION.append(46-int(offset_x))
     FEEDER_POSITION.append(16-int(offset_y))
@@ -360,7 +366,7 @@ def read_gerber_htm(loc):
 def read_gerber(loc):
 
     offset_x, offset_y = input("Enter board reference point:").split()
-    CAMERA_POSITION.append(133-int(offset_x))
+    CAMERA_POSITION.append(136-int(offset_x))
     CAMERA_POSITION.append(27-int(offset_y))
     FEEDER_POSITION.append(46-int(offset_x))
     FEEDER_POSITION.append(16-int(offset_y))
@@ -434,11 +440,13 @@ def act_serial(port):
 
 def start():
 
-    global morp_ker, thresh_ker, thresh_sub, epsilon
+    global morp_ker, thresh_ker, thresh_sub, epsilon, camera
     morp_ker = 15
     thresh_ker = 11
     thresh_sub = 35
     epsilon = 0.12
+    camera = input("Camera number(1-0): ")
+    camera = int(camera)
     ports, dev_name = [], []
     iterator = comports(include_links='s')
     count = 0

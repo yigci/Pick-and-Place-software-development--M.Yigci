@@ -16,8 +16,8 @@ DEFINED_CENTER = []
 
 
 def visual():
-
-    cap = cv2.VideoCapture(0)
+    camera = input("camera number")
+    cap = cv2.VideoCapture(int(camera))
     ret, image = cap.read()
     res_y = int(len(image[0]))
     res_x = int(len(image))
